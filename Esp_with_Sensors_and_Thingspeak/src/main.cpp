@@ -21,7 +21,7 @@ int counter = 0;
 #define WIFI_TIMEOUT 20000         // in milliseconds
 
 /////////////////////////
-// Code thet below is From Prof
+// Down From Prof
 /////////////////////////
 TFT_eSPI tft;
 VL53L1X sensor[5];
@@ -84,7 +84,7 @@ void initToFs()
     }
 }
 /////////////////////////
-// Code thet above is From Prof
+// Up From Prof
 /////////////////////////
 
 void connectToWiFi() // Function to connect to wifi
@@ -122,7 +122,7 @@ void setup()
  
  
  /////////////////////////
-// Code thet below is From Prof
+// Down From Prof
 /////////////////////////
 
     tft.init();
@@ -151,7 +151,7 @@ void setup()
     delay(5000);
 
 /////////////////////////
-// Code thet above is From Prof
+// Up From Prof
 /////////////////////////
 
     ThingSpeak.begin(client); // to initilize the thingspeak library
@@ -161,7 +161,7 @@ void loop()
 {
 
 /////////////////////////
-// Code thet below is From Prof
+// Down From Prof
 /////////////////////////
 
     for (int i = 0; i < 5; i++)
@@ -185,7 +185,7 @@ void loop()
     //  showVoltage();
 
 /////////////////////////
-// Code thet above is From Prof
+// Up From Prof
 /////////////////////////
 
     counter++;                                               // we will increment the counter
@@ -202,7 +202,7 @@ void loop()
 
 
 /////////////////////////
-// Code thet below is From Prof
+// Down From Prof
 /////////////////////////
 void displayDistance()
 {
@@ -242,5 +242,5 @@ void showVoltage()
     }
 }
 /////////////////////////
-// Code thet above is From Prof
+// Up From Prof
 /////////////////////////
