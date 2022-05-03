@@ -116,7 +116,6 @@ void connectToWiFi() // Function to connect to wifi
 void setup()
 {
     // put your setup code here, to run once:
-    delay(500);
     Serial.begin(115200); // start the serial
     connectToWiFi();    // connect to WIFI
  
@@ -136,9 +135,9 @@ void setup()
 
     initToFs();
 
-    Serial.print("req ID from 3pi+...");
+/*     Serial.print("req ID from 3pi+...");
     Wire.requestFrom(5, 10); // read ID from robot
-    Serial.print("done. ID: ");
+    Serial.print("done. ID: "); */
 
     while (Wire.available())
     {
