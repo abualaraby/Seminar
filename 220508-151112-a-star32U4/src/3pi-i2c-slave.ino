@@ -84,7 +84,7 @@ void driveTurnleft()
 }
 void driveTurnright()
 {
-  motors.setSpeeds(100, -100);
+  motors.setSpeeds(50, -50);
 }
 
 // Roboter über Bump Sensoren fahren lassen.
@@ -207,6 +207,7 @@ void bumpDrive()
     */
   }
 }
+// Funktion für Startbildschirm 
 void mainDisplay()
 {
   display.clear();
@@ -226,22 +227,23 @@ void turning()
   delay(turningDelay);
   driveStop();
 }
-
+// Funktion zum Aktivieren der Sensoren für Magnetische/Osziloskop/Acceleration erfassung
 void initIntertialSensors()
 {
   Wire.begin();
   imu.init();
   imu.enableDefault();
 }
-
+// Erkennung um wie viel ° sich gedreht wurde
 void encoderTurn()
 {
   uint16_t encCountsLeft = 0, encCountsRight = 0;
   uint16_t lastUpdateTime = millis() - 100;
   char buf[4];
-  driveTurnleft();
-  while (!buttonC.getSingleDebouncedRelease())
-  {
+  driveTurnright();
+  //while (!buttonC.getSingleDebouncedRelease())
+  //{
+     if((uint16_t)(millis()-lastUpdateTime)>50){
     encCountsLeft += encoders.getCountsAndResetLeft();
     if (encCountsLeft < 0)
     {
@@ -262,7 +264,7 @@ void encoderTurn()
       encCountsRight -= 1000;
     }
     // Zeitliches Update.
-    // if((uint16_t)(millis()-lastUpdateTime)>5){
+    
     lastUpdateTime = millis();
     display.clear();
     display.gotoXY(0, 0);
@@ -305,24 +307,25 @@ void encoderTurn()
     // 240 auf beiden Seiten für 90° Winkel
     // mit Geschwindigkeit -50,50 und keinem
     // Updateintervall.
-    if (encCountsLeft < -240 || encCountsRight > 240)
+     }
+    if (encCountsLeft < -40 || encCountsRight > 40)
     {
       driveStop();
       encCountsLeft = 0;
       encCountsRight = 0;
-      delay(5000);
+      delay(1000);
 
-      driveTurnleft();
+      driveTurnright();
     }
     else
     {
-      driveTurnleft();
+      driveTurnright();
     }
   }
-}
 //}
-
-void driveturn90()
+//}
+//90° Drehenung für Bumpdrive
+void driveturn20()
 {
   uint16_t encCountsLeft = 0, encCountsRight = 0;
   
@@ -334,10 +337,13 @@ void driveturn90()
   encCountsLeft=0;
   encCountsRight=0;
 
-  driveStop();
+  driveTurnright();
 
+ // encCountsLeft und encCountsRight wert abändern für andere Grad Zahl 
+ //encCountsLeft >-240 || encCountsRight <240 => 90°
+ //encCountsLeft >-40  || encCountsRight <40  => 20° 
 
-  while (encCountsLeft>-240||encCountsRight<240)
+  while (encCountsLeft>-40||encCountsRight<40)
   {
     
     driveTurnleft();
@@ -368,8 +374,10 @@ void driveturn90()
   driveStop();
   encCountsLeft=0;
   encCountsRight=0;
+  delay(1000);
 }
-
+// Programm zum Drehen des Roboters um 90° wenn ein Hindernis registriert wurde
+//bump-Sensoren
 void bumpDrive90(){
   unsigned long stopDelay = 500;
   unsigned long turnDelay = 500;
@@ -393,7 +401,7 @@ void bumpDrive90(){
     if(bumpSensors.leftIsPressed()){
       driveBackward();
       //delay(backwardDelay);
-      driveturn90();
+      driveturn20();
       delay(turnDelay);
       driveForward();
       return;
@@ -401,7 +409,7 @@ void bumpDrive90(){
     if(bumpSensors.rightIsPressed()){
        driveBackward();
       //delay(backwardDelay);
-      driveturn90();
+      driveturn20();
       delay(turnDelay);
       driveForward();
       return;
@@ -409,7 +417,7 @@ void bumpDrive90(){
     if(bumpSensors.rightIsPressed()&&bumpSensors.leftIsPressed()){
       driveBackward();
       //delay(stopDelay);
-      driveturn90();
+      driveturn20();
       delay(turnDelay);
       driveForward();
       return;
@@ -417,16 +425,16 @@ void bumpDrive90(){
    
   }
 }
-
+//Programmteil zum Ausführen der Funktionen 
 void loop()
 {
-  Serial.print(".");
-  delay(1000);
+  //Serial.print(".");
+  //delay(1000);
   bool stateButtonA = 0;
   bool stateButtonB = 0;
   bool stateButtonC = 0;
-  mainDisplay();
-
+  //mainDisplay();
+  /*
   if (buttonB.getSingleDebouncedRelease())
   {
     stateButtonB = 1;
@@ -452,7 +460,8 @@ void loop()
       mainDisplay();
     }
   }
-  while (stateButtonB == 1)
+  */
+  /*while (stateButtonB == 1)
   {
     encoderTurn();
     if (buttonC.getSingleDebouncedRelease())
@@ -461,6 +470,9 @@ void loop()
       mainDisplay();
     }
   }
+  */
+ driveturn20();
+ 
 }
 
 // Code von Herr Lübbers Start
