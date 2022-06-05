@@ -138,6 +138,50 @@ String sensorToString(int index)
     return output;
 }
 
+/////////////////////////
+// The Code Below is From Prof
+/////////////////////////
+void displayDistance()
+{
+    tft.setTextDatum(MC_DATUM); // middle centered
+
+    String distanceString = String(sensor[0].ranging_data.range_mm);
+    distanceString = String(distanceString + "mm");
+
+    tft.fillRect(0, 0, 135, 200 - (sensor[2].ranging_data.range_mm / 10), TFT_BLACK);
+    tft.fillRect(0, 200 - (sensor[2].ranging_data.range_mm / 10), 135, 200, TFT_SKYBLUE);
+
+    if (sensor[0].ranging_data.range_status == VL53L1X::RangeValid)
+    {
+        tft.setTextColor(TFT_SKYBLUE);
+    }
+    else
+    {
+        tft.setTextColor(TFT_RED);
+    }
+    tft.fillRect(0, 200, 135, 240, TFT_BLACK);
+    tft.drawString(distanceString, 80, 220, 4);
+}
+
+void showVoltage()
+{
+    static uint64_t timeStamp = 0;
+    if (millis() - timeStamp > 1000)
+    {
+        timeStamp = millis();
+        uint16_t v = analogRead(ADC_PIN);
+        float battery_voltage = ((float)v / 4095.0) * 2.0 * 3.3 * (vref / 1000.0);
+        String voltage = "Voltage :" + String(battery_voltage) + "V";
+        Serial.println(voltage);
+        tft.fillScreen(TFT_BLACK);
+        tft.setTextDatum(MC_DATUM);
+        tft.drawString(voltage, tft.width() / 2, tft.height() / 2);
+    }
+}
+/////////////////////////
+// The Code Above is From Prof
+/////////////////////////
+
 void setup()
 {
     // put your setup code here, to run once:
@@ -150,13 +194,11 @@ void setup()
 
     tft.init();
     tft.setRotation(0);
-    tft.fillScreen(TFT_BLACK);
+    tft.fillScreen(TFT_GREEN);
     tft.setSwapBytes(true);
     tft.pushImage(0, 0, 135, 240, splash);
     Wire.begin();
     Wire.setClock(400000); // use 400 kHz I2C
-    delay(1000);
-
     initToFs();
 
     /*     Serial.print("req ID from 3pi+...");
@@ -205,7 +247,7 @@ void loop()
     //  Serial.print("\tambient: ");
     //  Serial.print(sensor.ranging_data.ambient_count_rate_MCPS);
     //  Serial.println();
-    //  displayDistance();
+      displayDistance();
     //  showVoltage();
 
     /////////////////////////
@@ -265,46 +307,3 @@ void loop()
      */
 }
 
-/////////////////////////
-// The Code Below is From Prof
-/////////////////////////
-void displayDistance()
-{
-    tft.setTextDatum(MC_DATUM); // middle centered
-
-    String distanceString = String(sensor[0].ranging_data.range_mm);
-    distanceString = String(distanceString + "mm");
-
-    tft.fillRect(0, 0, 135, 200 - (sensor[0].ranging_data.range_mm / 10), TFT_BLACK);
-    tft.fillRect(0, 200 - (sensor[0].ranging_data.range_mm / 10), 135, 200, TFT_SKYBLUE);
-
-    if (sensor[0].ranging_data.range_status == VL53L1X::RangeValid)
-    {
-        tft.setTextColor(TFT_SKYBLUE);
-    }
-    else
-    {
-        tft.setTextColor(TFT_RED);
-    }
-    tft.fillRect(0, 200, 135, 240, TFT_BLACK);
-    tft.drawString(distanceString, 80, 220, 4);
-}
-
-void showVoltage()
-{
-    static uint64_t timeStamp = 0;
-    if (millis() - timeStamp > 1000)
-    {
-        timeStamp = millis();
-        uint16_t v = analogRead(ADC_PIN);
-        float battery_voltage = ((float)v / 4095.0) * 2.0 * 3.3 * (vref / 1000.0);
-        String voltage = "Voltage :" + String(battery_voltage) + "V";
-        Serial.println(voltage);
-        tft.fillScreen(TFT_BLACK);
-        tft.setTextDatum(MC_DATUM);
-        tft.drawString(voltage, tft.width() / 2, tft.height() / 2);
-    }
-}
-/////////////////////////
-// The Code Above is From Prof
-/////////////////////////
