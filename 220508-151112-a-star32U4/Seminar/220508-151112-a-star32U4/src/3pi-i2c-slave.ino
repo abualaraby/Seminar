@@ -31,13 +31,10 @@ const char supermario[] PROGMEM = "v12 L16 o5 eererce8g8r8<g8r8";
 
 bool sendID = true; // if true, output is ID of robot, if flase, output is sensor data
 
-const int RoboterAdr=5;
-
-
 void setup()
 {
-  //display.gotoXY(0, 1);
-  //display.print(F("Init"));
+  display.gotoXY(0, 1);
+  display.print(F("Init"));
   Serial.begin(115200);
   delay(2000);
   Serial.println("");
@@ -46,13 +43,13 @@ void setup()
   Serial.println("--------------------");
   // I2C-Adresszuweisung: Slave 5
   Serial.print("starting I2C slave address 0x05...");
-  Wire.begin(RoboterAdr);
+  Wire.begin(5);
   Wire.setClock(400000); // use 400 kHz I2C
   Serial.println("done.");
 
   // Handler für das I2C-Empfangsereignis festlegen
-  Wire.onReceive(receiveEvent);//Zum Empfangen
-  Wire.onRequest(requestEvent);//Zum Senden
+  Wire.onReceive(receiveEvent);
+  Wire.onRequest(requestEvent);
 
   Serial.print("calibrating bump sensors...");
   bumpSensors.calibrate();
@@ -60,7 +57,6 @@ void setup()
   Serial.print("waiting for I2C master");
   // Code von Herr Lübbers Ende
   bumpSensors.calibrate();
-  
   display.clear();
   display.gotoXY(0, 0);
   display.print("Press");
@@ -68,7 +64,6 @@ void setup()
   display.print(F("Button"));
   // encoders.init();
   // imu.init();
-  
 }
 // Fahrtrichtungen Geschwindigkeitsfunktionen
 void driveForward()
@@ -101,13 +96,12 @@ void bumpDrive()
   unsigned long backwardDelay = 200;
   unsigned long countTurnDelay = 1000;
   unsigned long countBackwardDelay = 200;
-  
+
   display.clear();
   display.gotoXY(0, 0);
   display.print(F("Bump"));
   display.gotoXY(0, 1);
   display.print(F("Drive"));
-  
   driveForward();
   // imu.configureForTurnSensing();
   bumpSensors.read();
@@ -214,7 +208,6 @@ void bumpDrive()
   }
 }
 // Funktion für Startbildschirm 
-
 void mainDisplay()
 {
   display.clear();
@@ -223,7 +216,6 @@ void mainDisplay()
   display.gotoXY(0, 1);
   display.print(F("Button"));
 }
-
 // Klasse Drehen für Drehen auf bestimmte Winkel gedacht.
 void turning()
 {
@@ -274,19 +266,17 @@ void encoderTurn()
     // Zeitliches Update.
     
     lastUpdateTime = millis();
-    //display.clear();
-    //display.gotoXY(0, 0);
+    display.clear();
+    display.gotoXY(0, 0);
     sprintf(buf, "%03d", encCountsLeft);
-    //display.print(buf);
-    //display.gotoXY(0, 1);
+    display.print(buf);
+    display.gotoXY(0, 1);
     sprintf(buf, "%03d", encCountsRight);
-    /*
     display.print(buf);
     display.gotoXY(5, 0);
     display.print("L");
     display.gotoXY(5, 1);
     display.print("R");
-    */
     // mit Updatrhythmus 5ms
     // 90° Drehwinkel
     // Turning Speeds (-100, 100)
@@ -394,13 +384,12 @@ void bumpDrive90(){
   unsigned long backwardDelay = 50;
   unsigned long countTurnDelay = 1000;
   unsigned long countBackwardDelay = 200;
-  /*
+  
   display.clear();
   display.gotoXY(0, 0);
   display.print(F("Bump"));
   display.gotoXY(0, 1);
   display.print(F("Drive"));
-  */
   driveForward();
   // imu.configureForTurnSensing();
   //bumpSensors.calibrate();
@@ -482,36 +471,10 @@ void loop()
     }
   }
   */
- //driveturn20();
-
-
+ driveturn20();
  
 }
 
-
-void receiveEvent(int howMany){
-  int charCount=0;
-
-  while(Wire.available()){
-    char rxChar=Wire.read();
-
-    if(rxChar=='1'){
-      driveturn20();
-    }
-    else{
-      Serial.println(rxChar);
-      // value[charCount++]=rxChar;
-      charCount++; //Zum springen im Array um den Wert zu schreiben
-    }
-  }
-}
-
-//SendeEvent noch nicht eingefügt, um eine Rückgabe zu machen. 
-void requestEvent(int howMany){
-
-}
-
-/* Code vom Herr Lübbers wurde für Testzwecke ausgeklammert, um das receiveEvent und das RequestEvent selbst zu Programmieren
 // Code von Herr Lübbers Start
 void receiveEvent(int howMany)
 {
@@ -578,4 +541,3 @@ void requestEvent()
   Serial.print("waiting for I2C master");
 }
 // Code von Herr Lübbers Ende
-*/
