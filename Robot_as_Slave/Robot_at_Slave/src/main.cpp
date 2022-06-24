@@ -55,11 +55,12 @@ void driveStop()
 }
 void driveTurnleft()
 {
-  motors.setSpeeds(-50, 50);
+  motors.setSpeeds(-50,50);
 }
 void driveTurnright()
 {
-  motors.setSpeeds(50, -50);
+  
+  motors.setSpeeds(150, -150);
 }
 
 
@@ -78,7 +79,10 @@ void driveturn20()
   encCountsLeft=0;
   encCountsRight=0;
 
-  driveTurnright();
+  if(encoders.checkErrorLeft()||encoders.checkErrorRight()){
+    return;
+  }
+  
 
  // encCountsLeft und encCountsRight wert abändern für andere Grad Zahl 
  //encCountsLeft >-240 || encCountsRight <240 => 90°
@@ -118,6 +122,110 @@ void driveturn20()
   delay(1000);
 }
 
+// 20° Drehung des Roboters zum erfassen der Werte
+void driveturn15()
+{
+  uint16_t encCountsLeft = 0, encCountsRight = 0;
+  
+  char buf[4];
+  
+  //Anfangsreset 
+  encCountsLeft=encoders.getCountsAndResetLeft();
+  encCountsRight=encoders.getCountsAndResetRight();
+  encCountsLeft=0;
+  encCountsRight=0;
+
+  
+
+ // encCountsLeft und encCountsRight wert abändern für andere Grad Zahl 
+ //encCountsLeft >-240 || encCountsRight <240 => 90°
+ //encCountsLeft >-40  || encCountsRight <40  => 20° 
+
+  while (encCountsLeft>-30||encCountsRight<30)
+  {
+    
+    driveTurnleft();
+    
+    encCountsLeft += encoders.getCountsAndResetLeft();
+    if (encCountsLeft < 0)
+    {
+      encCountsLeft += 1000;
+    }
+    if (encCountsRight > 999)
+    {
+      encCountsLeft -= 1000;
+    }
+
+    encCountsRight += encoders.getCountsAndResetRight();
+    if (encCountsRight < 0)
+    {
+      encCountsRight += 1000;
+    }
+    if (encCountsRight > 999)
+    {
+      encCountsRight -= 1000;
+    }
+
+    
+    
+  }
+  driveStop();
+  encCountsLeft=0;
+  encCountsRight=0;
+  delay(1000);
+}
+
+void driveturn5()
+{
+  uint16_t encCountsLeft = 0, encCountsRight = 0;
+  
+  char buf[4];
+  
+  //Anfangsreset 
+  encCountsLeft=encoders.getCountsAndResetLeft();
+  encCountsRight=encoders.getCountsAndResetRight();
+  encCountsLeft=0;
+  encCountsRight=0;
+
+  
+
+ // encCountsLeft und encCountsRight wert abändern für andere Grad Zahl 
+ //encCountsLeft >-240 || encCountsRight <240 => 90°
+ //encCountsLeft >-40  || encCountsRight <40  => 20° 
+ //while (encCountsLeft<1000||encCountsRight>-1000)
+  while(((encCountsRight-encCountsLeft)/2)<9)
+  {
+    
+    driveTurnleft();
+    
+    encCountsLeft += encoders.getCountsAndResetLeft();
+    if (encCountsLeft < 0)
+    {
+      encCountsLeft += 10000;
+    }
+    if (encCountsRight > 9999)
+    {
+      encCountsLeft -= 10000;
+    }
+
+    encCountsRight += encoders.getCountsAndResetRight();
+    if (encCountsRight < 0)
+    {
+      encCountsRight += 10000;
+    }
+    if (encCountsRight > 9999)
+    {
+      encCountsRight -= 10000;
+    }
+
+    
+    
+  }
+  driveStop();
+  encCountsLeft=0;
+  encCountsRight=0;
+  delay(1000);
+}
 
 // Drehung des Roboters um 90° nach links, wenn man vor einem Hindernis steht. 
 void driveturn90()
@@ -211,12 +319,21 @@ void receiveEvent(int howMany){
   int value=100;
   while(Wire.available()){
     char rxChar=Wire.read();
-
+    // '10' wird nicht richtig übertragen / Empfangen => keine Aktion
     if(rxChar=='1'){
       driveturn20();
+    
     }
     if(rxChar=='2'){
       driveturn90();
+    }
+    if(rxChar=='5'){
+      driveturn15();
+     
+    }
+    if(rxChar=='7'){
+      driveturn5();
+      
     }
     
     else{
