@@ -37,13 +37,14 @@ bool sendID = true; // if true, output is ID of robot, if flase, output is senso
 const int RoboterAdr=5;
 
 int test=0;
-
+bool DriveTest;
+bool StopTest;
 
 // Fahrtrichtungen Geschwindigkeitsfunktionen
 // Setzen wir hier zuvor fest, um weniger Arbeit zu haben. 
 void driveForward()
 {
-  motors.setSpeeds(100, 100);
+  motors.setSpeeds(50, 50);
 }
 void driveBackward()
 {
@@ -320,28 +321,41 @@ void receiveEvent(int howMany){
   while(Wire.available()){
     char rxChar=Wire.read();
     // '10' wird nicht richtig übertragen / Empfangen => keine Aktion
-    if(rxChar=='1'){
+    if(rxChar==1){
       driveturn20();
     
     }
-    if(rxChar=='2'){
+    if(rxChar==2){
       driveturn90();
     }
-    if(rxChar=='5'){
+    if(rxChar==3){
       driveturn15();
      
     }
-    if(rxChar=='7'){
+    if(rxChar==4){
       driveturn5();
       
     }
-    
+    if(rxChar==5){
+      DriveTest=1;
+    }
+    if(rxChar==6){
+      driveTurnleft();
+    }
+    if(rxChar==7){
+      DriveTest=0;
+    }
+    /*
     else{
+      
       Serial.println(rxChar);
       // value[charCount++]=rxChar;
       driveForwar(value);
       charCount++; //Zum springen im Array um den Wert zu schreiben
+   
+
     }
+    */
   }
 }
 
@@ -384,5 +398,8 @@ void setup() {
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
+  while(DriveTest==1){
+    driveForward();
+  }
+  driveStop();
 }

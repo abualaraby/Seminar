@@ -25,6 +25,11 @@ bool click1 = false;
 bool click2 = false;
 bool doubleclick1 = false;
 bool doubleclick2 = false;
+bool longclick1=false;
+bool longclick2=false;
+
+uint8_t menu=0;
+
 uint8_t movcolum = 0;
 uint8_t movrow = 0;
 
@@ -118,7 +123,7 @@ void initToFs()
       // the minimum timing budget is 20 ms for short distance mode and 33 ms for
       // medium and long distance modes. See the VL53L1X datasheet for more
       // information on range and timing limits.
-      sensor[i].setDistanceMode(VL53L1X::Long);
+      sensor[i].setDistanceMode(VL53L1X::Short);
       sensor[i].setMeasurementTimingBudget(50000);
 
       // Start continuous readings at a rate of one measurement every 50 ms (the
@@ -219,7 +224,7 @@ void handler2(Button2 &btn)
   click2 = true;
 }
 
-void handler3(Button2 &btn)
+void doubleClickHandler1(Button2 &btn)
 {
   switch (btn.getType())
   {
@@ -241,7 +246,7 @@ void handler3(Button2 &btn)
   Serial.println(")");
   doubleclick1 = true;
 }
-void handler4(Button2 &btn)
+void doubleClickHandler2(Button2 &btn)
 {
   switch (btn.getType())
   {
@@ -263,6 +268,54 @@ void handler4(Button2 &btn)
   Serial.println(")");
   doubleclick2 = true;
 }
+
+
+void longClickHandler1(Button2 &btn)
+{
+  switch (btn.getType())
+  {
+  case single_click:
+    break;
+  case double_click:
+    Serial.print("double ");
+    break;
+  case triple_click:
+    Serial.print("triple ");
+    break;
+  case long_click:
+    Serial.print("long");
+    break;
+  }
+  Serial.print("double_click2");
+  Serial.print(" (");
+  Serial.print(btn.getNumberOfClicks());
+  Serial.println(")");
+  longclick1 = true;
+}
+
+void longClickHandler2(Button2 &btn)
+{
+  switch (btn.getType())
+  {
+  case single_click:
+    break;
+  case double_click:
+    Serial.print("double ");
+    break;
+  case triple_click:
+    Serial.print("triple ");
+    break;
+  case long_click:
+    Serial.print("long");
+    break;
+  }
+  Serial.print("double_click2");
+  Serial.print(" (");
+  Serial.print(btn.getNumberOfClicks());
+  Serial.println(")");
+  longclick2 = true;
+}
+
 
 // Lesen der Sensorwerte
 float sensorRead()
@@ -321,6 +374,19 @@ float sensorRead()
   return average[2];
 }
 
+float sensor3Read(){
+  float saveValue[10];
+  float average;
+  saveValue[0]=sensor[2].ranging_data.range_mm;
+  for (int i=0;i<10;i++){
+    saveValue[i]=sensor[2].ranging_data.range_mm;
+    average+=saveValue[i];
+  }
+  average=average/10;
+  return average;
+
+}
+
 void soloSensorOutput()
 {
   float saveValue[50];
@@ -376,31 +442,50 @@ void soloSensorOutput()
 }
 
 // Funktionen zum Senden von Befehlen
-// '10' wird nicht richtig übertragen / Empfangen => keine Aktion
+// '10' wird nicht richtig übertragen, weil der Wert dann über12000 ist/ Empfangen => keine Aktion
 void Robotturn20()
 {
   Wire.beginTransmission(Roboter_ID);
-  Wire.write('1');
+  Wire.write(1);
   Wire.endTransmission();
 }
 
 void Robotturn90()
 {
   Wire.beginTransmission(Roboter_ID);
-  Wire.write('2');
+  Wire.write(2);
   Wire.endTransmission();
 }
 
 void Robotturn15()
 {
   Wire.beginTransmission(Roboter_ID);
-  Wire.write('5');
+  Wire.write(3);
   Wire.endTransmission();
 }
 void Robotturn5()
 {
   Wire.beginTransmission(Roboter_ID);
-  Wire.write('7');
+  Wire.write(4);
+  Wire.endTransmission();
+}
+
+// Roboter vor Fahren lassen
+void RobotForward()
+{
+  Wire.beginTransmission(Roboter_ID);
+  Wire.write(5);
+  Wire.endTransmission();
+}
+void turnLeft(){
+  Wire.beginTransmission(Roboter_ID);
+  Wire.write(6);
+  Wire.endTransmission();
+}
+void RobotStop()
+{
+  Wire.beginTransmission(Roboter_ID);
+  Wire.write(7);
   Wire.endTransmission();
 }
 // Variable des Sensors 3 an Roboter senden (die zwei, weil von 0 aus gezählt wird)
@@ -483,12 +568,13 @@ void movreset()
   movrow = 0;
   Buttoncount2 = 0;
 }
-
+// Display Reseten(komplett Schwarz färben)
 void displayReset()
 {
   tft.fillRect(0, 0, 250, 250, TFT_BLACK);
 }
 
+// Messen in 15° Schritten
 void measurement15()
 {
 
@@ -536,9 +622,10 @@ void measurement15()
   tft.print(measurementvalue15[24]);
 }
 
+// Aufnehmen von Messdaten in 5° Schritten
 void measurement5()
 {
-  measurementvalue5[position]=sensorRead();
+  measurementvalue5[position] = sensorRead();
 
   for (position = 0; position < 72; position++)
   { // Bei 5° Schritten position <72, bei 15°Schritten position<24
@@ -609,6 +696,7 @@ void measurement5()
   tft.print(measurementvalue5[72]);
 }
 
+// Umrechnen der Werte in X Koordinaten (5° Schritte)
 void convertMeasuermentX5()
 {
   displayReset();
@@ -617,83 +705,83 @@ void convertMeasuermentX5()
   tft.print("xWerte");
   for (position = 0; position < 72; position++)
   {
-    xValues5[position] = (cosf(5 * position*DEG_TO_RAD)) * measurementvalue5[position];
-/* War zur Ausgabe der x-Werte um Sie auf Ihre Richtigkeit zu kontrollieren kann später komplett entfernt werden
-    if (position < 15)
-    {
+    xValues5[position] = (cosf(5 * position * DEG_TO_RAD)) * measurementvalue5[position];
+    /* War zur Ausgabe der x-Werte um Sie auf Ihre Richtigkeit zu kontrollieren kann später komplett entfernt werden
+        if (position < 15)
+        {
 
-      tft.setCursor(0, 15 * (position + 1));
-      if (position == 0)
-      {
-        tft.setTextColor(TFT_BLUE);
-      }
-      else
-      {
-        tft.setTextColor(TFT_GOLD);
-      }
-      tft.print(xValues5[position]);
-    }
+          tft.setCursor(0, 15 * (position + 1));
+          if (position == 0)
+          {
+            tft.setTextColor(TFT_BLUE);
+          }
+          else
+          {
+            tft.setTextColor(TFT_GOLD);
+          }
+          tft.print(xValues5[position]);
+        }
 
-    if (position >= 15 && position < 30)
-    {
+        if (position >= 15 && position < 30)
+        {
 
-      tft.setCursor(40, 15 * (position + 1 - 15));
-      tft.setTextColor(TFT_GREEN);
-      tft.print(xValues5[position]);
-    }
+          tft.setCursor(40, 15 * (position + 1 - 15));
+          tft.setTextColor(TFT_GREEN);
+          tft.print(xValues5[position]);
+        }
 
-    if (position >= 30 && position < 45)
-    {
-      tft.setCursor(80, 15 * (position + 1 - 30));
-      tft.setTextColor(TFT_RED);
-      tft.print(xValues5[position]);
-    }
-    if (position == 45)
-    {
-      tft.fillRect(40, 0, 250, 250, TFT_BLACK);
-    }
-    if (position >= 45 && position < 60)
-    {
+        if (position >= 30 && position < 45)
+        {
+          tft.setCursor(80, 15 * (position + 1 - 30));
+          tft.setTextColor(TFT_RED);
+          tft.print(xValues5[position]);
+        }
+        if (position == 45)
+        {
+          tft.fillRect(40, 0, 250, 250, TFT_BLACK);
+        }
+        if (position >= 45 && position < 60)
+        {
 
-      tft.setCursor(40, 15 * (position + 1 - 45));
-      tft.setTextColor(TFT_GREEN);
-      tft.print(xValues5[position]);
-    }
+          tft.setCursor(40, 15 * (position + 1 - 45));
+          tft.setTextColor(TFT_GREEN);
+          tft.print(xValues5[position]);
+        }
 
-    if (position >= 60 && position < 75)
-    {
+        if (position >= 60 && position < 75)
+        {
 
-      tft.setCursor(80, 15 * (position + 1 - 60));
-      if (position == 71)
-      {
-        tft.setTextColor(TFT_SKYBLUE);
-      }
-      else
-      {
-        tft.setTextColor(TFT_RED);
-      }
+          tft.setCursor(80, 15 * (position + 1 - 60));
+          if (position == 71)
+          {
+            tft.setTextColor(TFT_SKYBLUE);
+          }
+          else
+          {
+            tft.setTextColor(TFT_RED);
+          }
 
-      tft.print(xValues5[position]);
-    }
+          tft.print(xValues5[position]);
+        }
 
-    if (position >= 85 && position < 100)
-    {
-      tft.setCursor(120, 15 * (position + 1 - 60));
-      tft.setTextColor(TFT_BLUE);
-      tft.print(xValues5[position]);
-    }
-    */
+        if (position >= 85 && position < 100)
+        {
+          tft.setCursor(120, 15 * (position + 1 - 60));
+          tft.setTextColor(TFT_BLUE);
+          tft.print(xValues5[position]);
+        }
+        */
   }
 
   delay(100);
-  
 }
 
+// Umrechnen der Daten in Y Koordinaten ( 5° Schritte)
 void convertMeasurementY5()
 {
   for (position = 0; position < 72; position++)
   {
-    yValues5[position] = sinf(5 * position*DEG_TO_RAD ) * measurementvalue5[position];
+    yValues5[position] = sinf(5 * position * DEG_TO_RAD) * measurementvalue5[position];
     /*
        if (position < 15)
     {
@@ -762,67 +850,81 @@ void convertMeasurementY5()
   }
 }
 
+// Zeichnen einer Karte aufgrund von Messdaten
 void mapDrawing()
 {
+  measurement5();
+  convertMeasuermentX5();
+  convertMeasurementY5();
   displayReset();
   tft.setCursor(0, 0);
   tft.setTextColor(TFT_GOLD);
   tft.print("Mapdrawing");
   tft.drawRect(0, 20, 130, 220, TFT_RED);
 
-  int roundValueX=0;
-  int roundValueY=0;
-  tft.drawPixel(60,140,TFT_ORANGE);
+  int roundValueX = 0;
+  int roundValueY = 0;
+  tft.drawPixel(60, 140, TFT_ORANGE);
   for (uint8_t i = 0; i < 72; i++)
   {
-    roundValueX=xValues5[i]/10;
-    roundValueY=yValues5[i]/10;
+    roundValueX = xValues5[i] / 10;
+    roundValueY = yValues5[i] / 10;
 
-    if(i<12){
-    tft.drawPixel(65-(roundValueY),140 -(roundValueX), TFT_BLUE);
+    if (i < 12)
+    {
+      tft.drawPixel(65 - (roundValueY), 140 - (roundValueX), TFT_BLUE);
     }
-    if(i>=12&&i<24){
-      tft.drawPixel(65-(roundValueY),140 -(roundValueX), TFT_RED);
+    if (i >= 12 && i < 24)
+    {
+      tft.drawPixel(65 - (roundValueY), 140 - (roundValueX), TFT_RED);
     }
-    if(i>24&&i<36){
-      tft.drawPixel(65-(roundValueY),140 -(roundValueX), TFT_GOLD);
+    if (i > 24 && i < 36)
+    {
+      tft.drawPixel(65 - (roundValueY), 140 - (roundValueX), TFT_GOLD);
     }
-    if(i>=36&&i<48){
-      tft.drawPixel(65-(roundValueY),140 -(roundValueX), TFT_GREEN);
+    if (i >= 36 && i < 48)
+    {
+      tft.drawPixel(65 - (roundValueY), 140 - (roundValueX), TFT_GREEN);
     }
-    if(i>=48&&i<60){
-      tft.drawPixel(65-(roundValueY),140 -(roundValueX), TFT_WHITE);
+    if (i >= 48 && i < 60)
+    {
+      tft.drawPixel(65 - (roundValueY), 140 - (roundValueX), TFT_WHITE);
     }
-    if(i>=60&&i<100){
-      tft.drawPixel(65-(roundValueY),140 -(roundValueX), TFT_SKYBLUE);
+    if (i >= 60 && i < 100)
+    {
+      tft.drawPixel(65 - (roundValueY), 140 - (roundValueX), TFT_SKYBLUE);
     }
   }
 }
-/*
-void measureLongSideX15(){
-  for(uint8_t i=0;i<24;i++){
-    if(longSideX<measurementvalue15[i]){
-      longSideX=measurementvalue15[i];
-      position=i;
-    }
-  }
-}
-*/
-/*
-void convertLengths(){
-measureLongSideX15();
-
-//Positionierung in längste Richtung
-for(uint8_t i=0;i<position+1;i++){
-  Robotturn20();
-}
-*/
-// Konvertierung der Größen in x und y Achse
-// Sollten die Messungen in 15° Schritten durchführen, damit wir auch auf 90° kommen können und die Achsen
-// auch Abmessen.
-
-void convertMeasureToField()
+// Roboter aufgrund der Sensordaten 1 cm vor Fahren lassen.
+void Drive10()
 {
+  sensorRead();
+  displayReset();
+  tft.setCursor(0, 0);
+  tft.setTextColor(TFT_GREEN);
+  tft.println("10cm Forwärtsfahren");
+  int now = sensorRead();
+  
+  int drive = now - 2;
+  tft.setTextColor(TFT_RED);
+  tft.print("Ziel: ");
+  tft.print(drive);
+  RobotForward();
+  tft.setTextColor(TFT_GOLD);
+  while (now > drive)
+  {
+    tft.fillRect(0,50,100,100,TFT_BLACK);
+    tft.setCursor(0,50);
+    tft.print("Momentan: ");
+    tft.print(now);
+    now = sensorRead();
+    
+  }
+  RobotStop();
+  tft.setCursor(0,70);
+  tft.print("Endvalue: ");
+  tft.print(now);
 }
 
 void setup()
@@ -858,8 +960,10 @@ void setup()
 
   btn1.setClickHandler(handler1);
   btn2.setClickHandler(handler2);
-  btn1.setDoubleClickHandler(handler3);
-  btn2.setDoubleClickHandler(handler4);
+  btn1.setDoubleClickHandler(doubleClickHandler1);
+  btn2.setDoubleClickHandler(doubleClickHandler2);
+  btn1.setLongClickDetectedHandler(longClickHandler1);
+  btn2.setLongClickDetectedHandler(longClickHandler2);
 
   btn1.setDebounceTime(20);
   btn2.setDebounceTime(20);
@@ -874,7 +978,7 @@ void loop()
 
   if (click1 == true)
   {
-    
+
     Buttoncount1++;
     movreset();
     displayReset();
@@ -884,9 +988,7 @@ void loop()
     tft.println("SoloMeasurement ");
     tft.print("Counts: ");
     tft.print(Buttoncount1);
-    measurement5();
-    convertMeasuermentX5();
-    convertMeasurementY5();
+    //RobotForward();
     mapDrawing();
     //  soloSensorOutput();
     click1 = false;
@@ -895,19 +997,23 @@ void loop()
   {
     // Robotturn90();
     displayReset();
-
+    /* Erstellen des Auswahlfeldes und bewegen des Feldes
     movecount(Buttoncount2);
     if (Buttoncount2 > 3)
     {
       Buttoncount2 = 0;
     }
+    */
+    //RobotStop();
+    Drive10();
+    /*
     Buttoncount2++;
-    tft.setCursor(0, 0);
+    tft.setCursor(80, 0);
     // tft.fillRect(0,220,125,10,TFT_BLACK);
     tft.setTextColor(TFT_BLUE);
     tft.print("SelectMode, Counts:");
     tft.print(Buttoncount2);
-
+  */
     click2 = false;
   }
   if (doubleclick1 == true)
