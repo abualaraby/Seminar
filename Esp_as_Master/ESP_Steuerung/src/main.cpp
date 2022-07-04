@@ -9,10 +9,9 @@
 #include "splash.h"
 #include "Button2.h"
 #include "ThingSpeak.h"
-//#include "deque"
 
-#define CHANNEL_ID 1759092                 // Chris// Ahmed:1713470                 // Channel ID on Thingspeak
-#define CHANNEL_API_KEY "KBZPVDC83RELSMFS" // Chris //Ahmed: "K7G57B13MZEUEGW7" // API Read Key from Thingspeak
+#define CHANNEL_ID 1713470                 // Chris: 1759092 // Ahmed:1713470                 // Channel ID on Thingspeak
+#define CHANNEL_API_KEY "K7G57B13MZEUEGW7" // Chris: KBZPVDC83RELSMFS // Ahmed: "K7G57B13MZEUEGW7" // API Read Key from Thingspeak
 
 WiFiClient client; // this will be used by Thingspeak Library to make HTTP request
 
@@ -25,10 +24,10 @@ bool click1 = false;
 bool click2 = false;
 bool doubleclick1 = false;
 bool doubleclick2 = false;
-bool longclick1=false;
-bool longclick2=false;
+bool longclick1 = false;
+bool longclick2 = false;
 
-uint8_t menu=0;
+uint8_t menu = 0;
 
 uint8_t movcolum = 0;
 uint8_t movrow = 0;
@@ -48,15 +47,15 @@ float shortSideX = 0;
 float shortSideY = 0;
 
 // Wifi Konfiguration
-#define WIFI_NETWORK "Chris1"    // WIFI Name
-#define WIFI_PASSWORD "tqor8485" // WIFI Password
-#define WIFI_TIMEOUT 2000        // 20000       // in milliseconds
+#define WIFI_NETWORK "Drei"        // WIFI Name
+#define WIFI_PASSWORD "Howyoudoin" // WIFI Password
+#define WIFI_TIMEOUT 10000         // 20000       // in milliseconds
 
 #define BUTTON_1 0
 #define BUTTON_2 35
 
-Button2 btn1(BUTTON_1);
-Button2 btn2(BUTTON_2);
+Button2 btn1(BUTTON_1); // Linke Taste
+Button2 btn2(BUTTON_2); // Rechte Taste
 
 /*
 uint8_t btn1 = 0;
@@ -269,7 +268,6 @@ void doubleClickHandler2(Button2 &btn)
   doubleclick2 = true;
 }
 
-
 void longClickHandler1(Button2 &btn)
 {
   switch (btn.getType())
@@ -316,14 +314,12 @@ void longClickHandler2(Button2 &btn)
   longclick2 = true;
 }
 
-
 // Lesen der Sensorwerte
 float sensorRead()
 {
   float saveValue[50];
   for (int n = 0; n < 10; n++)
   {
-
     for (int i = 0; i < 5; i++)
     {
       // Seriele Schnettstelle übertragung
@@ -371,20 +367,22 @@ float sensorRead()
     tft.print(average[i]);
     */
   }
+
   return average[2];
 }
 
-float sensor3Read(){
+float sensor3Read()
+{
   float saveValue[10];
-  float average;
-  saveValue[0]=sensor[2].ranging_data.range_mm;
-  for (int i=0;i<10;i++){
-    saveValue[i]=sensor[2].ranging_data.range_mm;
-    average+=saveValue[i];
+  float average = 0;
+  // saveValue[0] = sensor[2].ranging_data.range_mm;
+  for (int i = 0; i < 10; i++)
+  {
+    saveValue[i] = sensor[2].read();
+    average += saveValue[i];
   }
-  average=average/10;
+  average /= 10;
   return average;
-
 }
 
 void soloSensorOutput()
@@ -477,7 +475,8 @@ void RobotForward()
   Wire.write(5);
   Wire.endTransmission();
 }
-void turnLeft(){
+void turnLeft()
+{
   Wire.beginTransmission(Roboter_ID);
   Wire.write(6);
   Wire.endTransmission();
@@ -625,17 +624,17 @@ void measurement15()
 // Aufnehmen von Messdaten in 5° Schritten
 void measurement5()
 {
-  measurementvalue5[position] = sensorRead();
+  // measurementvalue5[position] = sensor3Read();
 
   for (position = 0; position < 72; position++)
   { // Bei 5° Schritten position <72, bei 15°Schritten position<24
-    delay(100);
-    measurementvalue5[position] = sensorRead();
+    // delay(100);
+    measurementvalue5[position] = sensor3Read();
     Serial.println(measurementvalue5[position]);
-    delay(100);
+    // delay(100);
     Robotturn5(); // Roboterbewegung der Zahlenwert gibt die Gradzahl an.
 
-    delay(100);
+    // delay(100);
     if (position < 15)
     {
       tft.setCursor(0, 15 * (position + 1));
@@ -687,10 +686,10 @@ void measurement5()
   {
     position = 0;
   }
-  delay(100);
-  measurementvalue5[72] = sensorRead();
-  delay(100);
-  Serial.println(measurementvalue5[72]);
+  // delay(100);
+  // measurementvalue5[72] = sensor3Read();
+  // delay(100);
+  // Serial.println(measurementvalue5[72]);
   tft.setCursor(80, 0); // 80,25*(24+1-18)
   tft.setTextColor(TFT_BLUE);
   tft.print(measurementvalue5[72]);
@@ -905,7 +904,7 @@ void Drive10()
   tft.setTextColor(TFT_GREEN);
   tft.println("10cm Forwärtsfahren");
   int now = sensorRead();
-  
+
   int drive = now - 2;
   tft.setTextColor(TFT_RED);
   tft.print("Ziel: ");
@@ -914,17 +913,51 @@ void Drive10()
   tft.setTextColor(TFT_GOLD);
   while (now > drive)
   {
-    tft.fillRect(0,50,100,100,TFT_BLACK);
-    tft.setCursor(0,50);
+    tft.fillRect(0, 50, 100, 100, TFT_BLACK);
+    tft.setCursor(0, 50);
     tft.print("Momentan: ");
     tft.print(now);
     now = sensorRead();
-    
   }
   RobotStop();
-  tft.setCursor(0,70);
+  tft.setCursor(0, 70);
   tft.print("Endvalue: ");
   tft.print(now);
+}
+
+/**
+ * Funktion zum Hochladen der X und Y Koordinaten der Karte auf ThingSpeak.
+ * Es werden die umgewandelten Korrdinaten in jeweils zwei Strings
+ * augeteilt, da ThingSpeak nur eine Länge von max. 255 Zeichen erlaubt.
+ * Am Ende werden die Daten ueber die ersrten vier Felder hochgeladen.
+ */
+void uploadMap5()
+{
+  String Xcoords[] = {"", ""};
+  String Ycoords[] = {"", ""};
+
+  for (int j = 0; j < 2; j++)
+  {
+    bool isFirst = true;
+    for (int i = 0; i < 36; i++)
+    {
+      if (!isFirst)
+      {
+        Xcoords[j] += ";";
+        Ycoords[j] += ";";
+      }
+
+      Xcoords[j] += (int)xValues5[i + (36 * j)];
+      Ycoords[j] += (int)yValues5[i + (36 * j)];
+      isFirst = false;
+    }
+  }
+
+  ThingSpeak.setField(1, Xcoords[0]);
+  ThingSpeak.setField(2, Xcoords[1]);
+  ThingSpeak.setField(3, Ycoords[0]);
+  ThingSpeak.setField(4, Ycoords[1]);
+  ThingSpeak.writeFields(CHANNEL_ID, CHANNEL_API_KEY);
 }
 
 void setup()
@@ -978,7 +1011,6 @@ void loop()
 
   if (click1 == true)
   {
-
     Buttoncount1++;
     movreset();
     displayReset();
@@ -988,9 +1020,11 @@ void loop()
     tft.println("SoloMeasurement ");
     tft.print("Counts: ");
     tft.print(Buttoncount1);
-    //RobotForward();
+    // RobotForward();
     mapDrawing();
     //  soloSensorOutput();
+    uploadMap5();
+    Serial.println("Done uploading map");
     click1 = false;
   }
   if (click2 == true)
@@ -1004,7 +1038,7 @@ void loop()
       Buttoncount2 = 0;
     }
     */
-    //RobotStop();
+    // RobotStop();
     Drive10();
     /*
     Buttoncount2++;
