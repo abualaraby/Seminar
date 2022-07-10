@@ -497,6 +497,12 @@ void Robotsend3()
   Wire.endTransmission();
 }
 
+void Robotdirve1(){
+  Wire.beginTransmission(Roboter_ID);
+  Wire.write(8);
+  Wire.endTransmission();
+}
+
 // Funktion zum Aufsetzen eines Auswahlfeldes
 void movefield()
 {
@@ -636,6 +642,10 @@ void measurement5()
     Robotturn5(); // Roboterbewegung der Zahlenwert gibt die Gradzahl an.
 
     // delay(100);
+    //Dient zum anzeigen der Werte in unterschidlichen Positionen 
+    //Jetzt nicht mehr nötig, es sei den wir benötigen es 
+    //zur Fehlererkennung
+    /*
     if (position < 15)
     {
       tft.setCursor(0, 15 * (position + 1));
@@ -681,6 +691,7 @@ void measurement5()
       tft.setTextColor(TFT_BLUE);
       tft.print(measurementvalue5[position]);
     }
+    */
   }
 
   if (position >= 72)
@@ -773,7 +784,7 @@ void convertMeasuermentX5()
         */
   }
 
-  delay(100);
+  //delay(100);
 }
 
 // Umrechnen der Daten in Y Koordinaten ( 5° Schritte)
@@ -870,6 +881,10 @@ void mapDrawing()
     roundValueX = xValues5[i] / 10;
     roundValueY = yValues5[i] / 10;
 
+    tft.drawPixel(65-(roundValueY),140-(roundValueX),TFT_BLUE);
+
+
+    /* Diente zum auseinanderhalten der Messungen. Jetzt nicht mehr nötig
     if (i < 12)
     {
       tft.drawPixel(65 - (roundValueY), 140 - (roundValueX), TFT_BLUE);
@@ -894,6 +909,7 @@ void mapDrawing()
     {
       tft.drawPixel(65 - (roundValueY), 140 - (roundValueX), TFT_SKYBLUE);
     }
+    */
   }
 }
 // Roboter aufgrund der Sensordaten 1 cm vor Fahren lassen.
@@ -1001,6 +1017,8 @@ void setup()
 
   btn1.setDebounceTime(20);
   btn2.setDebounceTime(20);
+  btn1.setLongClickTime(1000);
+  btn2.setLongClickTime(1000);
   ThingSpeak.begin(client); // to initilize the thingspeak library
 }
 
@@ -1021,6 +1039,8 @@ void loop()
     tft.println("Einzel Klick links = ");
     tft.println("");
     tft.println("Einzelne Rundummessung");
+    tft.println("Mit Bildschirmausgabe und");
+    tft.println("upload");
     tft.println("");
     tft.setTextColor(TFT_GREEN);
     tft.println("Einzel Klick rechts =");
@@ -1064,6 +1084,7 @@ void loop()
     Serial.println("Done uploading map");
     click1 = false;
   }
+  
   if (click2 == true)
   {
     
@@ -1077,7 +1098,7 @@ void loop()
     }
     */
     // RobotStop();
-    Drive10();
+    Robotdirve1();
     /*
     Buttoncount2++;
     tft.setCursor(80, 0);
@@ -1095,7 +1116,8 @@ void loop()
     movreset();
     tft.setCursor(0, 0);
     tft.setTextColor(TFT_YELLOW);
-    tft.print("Measurmode 15");
+    tft.print("Forwärts fahren");
+    Drive10();
     
 
     tft.print(Buttoncount2);

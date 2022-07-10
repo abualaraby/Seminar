@@ -282,8 +282,8 @@ void driveturn90()
 }
 
 //Forwärtsfahren mit Encoder und übermittelten Werten.
-void driveForwar(int howFar){
-   uint16_t encCountsLeft = 0, encCountsRight = 0;
+void driveForwar(float howFar){
+   float encCountsLeft = 0, encCountsRight = 0;
   
   char buf[4];
   
@@ -299,14 +299,52 @@ void driveForwar(int howFar){
  //encCountsLeft >-240 || encCountsRight <240 => 90°
  //encCountsLeft >-40  || encCountsRight <40  => 20° 
 
-  while (encCountsLeft>howFar||encCountsRight>howFar)
+  while (encCountsLeft<howFar||encCountsRight<howFar)
   {
-    
-    driveForward();
-    
+    float faktor;
+    if(howFar<=10){
+      faktor=0.77;
+    }
+    if(howFar>10&&howFar<30){
+      faktor=0.8;
+    }
+    if(howFar>=30&&howFar<=110){
+      faktor=1.05;
+    }
+    if(howFar>120&&howFar<=250){
+      faktor=1.1;
+    }
+    if(howFar>250){
+      faktor=1.12;
+    }
    
+    driveForward();
+    // Umrechnung des Encoder Wertes in mm 
+    encCountsLeft += encoders.getCountsAndResetLeft()/(3.1415*faktor);
+
+    if (encCountsLeft < 0)
+    {
+      encCountsLeft += 10000;
+    }
+    if (encCountsRight > 9999)
+    {
+      encCountsLeft -= 10000;
+    }
+    //Umrechnung des Encoder Wertes in mm 
+    encCountsRight += encoders.getCountsAndResetRight()/(3.1415*faktor);
+    if (encCountsRight < 0)
+    {
+      encCountsRight += 10000;
+    }
+    if (encCountsRight > 9999)
+    {
+      encCountsRight -= 10000;
+    }
     
   }
+
+  //driveForward();
+  //delay(1000);
   driveStop();
   encCountsLeft=0;
   encCountsRight=0;
@@ -316,8 +354,8 @@ void driveForwar(int howFar){
 
 // Recieve- und RequesEvents zum erhalten und übermitteln von Daten. 
 void receiveEvent(int howMany){
-  int charCount=0;
-  int value=100;
+  
+  
   while(Wire.available()){
     char rxChar=Wire.read();
     // '10' wird nicht richtig übertragen / Empfangen => keine Aktion
@@ -345,6 +383,10 @@ void receiveEvent(int howMany){
     if(rxChar==7){
       DriveTest=0;
     }
+    if(rxChar==8){  //Einführung der Fahrübertragung
+      DriveTest=1;
+    }
+    rxChar=0;
     /*
     else{
       
@@ -398,8 +440,18 @@ void setup() {
 }
 
 void loop() {
+  //Vorwärts fahren über Encoder
   while(DriveTest==1){
+    DriveTest=0;
+    driveForwar(300); //Hiermit fährt der Roboter nach vorne in mm 
+  }
+  
+  // Forwärtsfahren über Sensoren (War nicht sehr gut)
+  /*
+  while(DriveTest==1){
+    DriveTest=0;
     driveForward();
   }
   driveStop();
+  */
 }
