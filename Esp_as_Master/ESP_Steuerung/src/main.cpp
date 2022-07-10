@@ -20,6 +20,7 @@ int counter = 0; // To know exactly how much Data have been sent
 // Variablen für Buttonbefehle
 uint8_t Buttoncount1 = 0; // Test der Buttonfunktionen mit hilfe von Interrupts
 uint8_t Buttoncount2 = 0;
+bool Menu= true; // Variable zum aktivieren und deaktivieren des Menüs
 bool click1 = false;
 bool click2 = false;
 bool doubleclick1 = false;
@@ -1009,8 +1010,44 @@ void loop()
   btn1.loop();
   btn2.loop();
 
+  if(Menu==true){
+    Menu=false;
+    displayReset();
+    tft.setCursor(0,0);
+    tft.setTextColor(TFT_WHITE);
+    tft.println("Menu");
+    tft.println("");
+    tft.setTextColor(TFT_BROWN);
+    tft.println("Einzel Klick links = ");
+    tft.println("");
+    tft.println("Einzelne Rundummessung");
+    tft.println("");
+    tft.setTextColor(TFT_GREEN);
+    tft.println("Einzel Klick rechts =");
+    tft.println("");
+    tft.println("10 cm nach vorne");
+    tft.println("");
+    tft.println("fahren mit Sensoren");
+    tft.println("");
+    tft.setTextColor(TFT_GOLD);
+    tft.println("Doppelklick Links  = ");
+    tft.println("");
+    tft.setTextColor(TFT_BLUE);
+    tft.println("Doppelklick Rechts = ");
+    tft.println("");
+    tft.setTextColor(TFT_CYAN);
+    tft.println("Langer Klick links = ");
+    tft.println("");
+    tft.println("Back to Menu");
+    tft.println("");
+    tft.setTextColor(TFT_RED);
+    tft.println("Langer Klick Rechts = ");
+    tft.println("");
+  }
+
   if (click1 == true)
   {
+    
     Buttoncount1++;
     movreset();
     displayReset();
@@ -1029,6 +1066,7 @@ void loop()
   }
   if (click2 == true)
   {
+    
     // Robotturn90();
     displayReset();
     /* Erstellen des Auswahlfeldes und bewegen des Feldes
@@ -1058,7 +1096,7 @@ void loop()
     tft.setCursor(0, 0);
     tft.setTextColor(TFT_YELLOW);
     tft.print("Measurmode 15");
-    measurement15();
+    
 
     tft.print(Buttoncount2);
   }
@@ -1072,5 +1110,14 @@ void loop()
     tft.print("Measuremode 5");
 
     measurement5();
+  }
+  if(longclick1==true){
+    Menu=true;
+    longclick1=false;
+
+  }
+  if(longclick2==true){
+    longclick2=false;
+
   }
 }
