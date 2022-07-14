@@ -184,7 +184,7 @@ void driveturn5()
   // encCountsLeft >-40  || encCountsRight <40  => 20°
   // while (encCountsLeft<1000||encCountsRight>-1000)
 
-  while (((encCountsRight - encCountsLeft) / 2) < 9)
+  while (((encCountsRight - encCountsLeft) / 2) < 8)
   {
 
     driveTurnleft();
@@ -214,12 +214,14 @@ void driveturn5()
     if (encoders.checkErrorLeft() == true || encoders.checkErrorRight() == true)
     {
       driveStop();
+      encoders.init();
+      
     }
   }
   driveStop();
   encCountsLeft = 0;
   encCountsRight = 0;
-  delay(1000);
+  //delay(50);
 }
 
 // Drehung des Roboters um 90° nach links, wenn man vor einem Hindernis steht.
