@@ -33,22 +33,24 @@ const char supermario[] PROGMEM = "v12 L16 o5 eererce8g8r8<g8r8";
 
 bool sendID = true; // if true, output is ID of robot, if flase, output is sensor data
 
-// Code von Herr Lübbers Ende 
-const int RoboterAdr=5;
+// Code von Herr Lübbers Ende
+const int RoboterAdr = 5;
 
-int test=0;
+int test = 0;
 bool DriveTest;
 bool StopTest;
+bool wireReadCounter = 0;
+bool wireFunktionCheck = 0;
 
 // Fahrtrichtungen Geschwindigkeitsfunktionen
-// Setzen wir hier zuvor fest, um weniger Arbeit zu haben. 
+// Setzen wir hier zuvor fest, um weniger Arbeit zu haben.
 void driveForward()
 {
   motors.setSpeeds(50, 50);
 }
 void driveBackward()
 {
-  motors.setSpeeds(-100, -100);
+  motors.setSpeeds(-50, -50);
 }
 void driveStop()
 {
@@ -56,44 +58,41 @@ void driveStop()
 }
 void driveTurnleft()
 {
-  motors.setSpeeds(-50,50);
+  motors.setSpeeds(-50, 50);
 }
 void driveTurnright()
 {
-  
+
   motors.setSpeeds(150, -150);
 }
-
-
-
 
 // 20° Drehung des Roboters zum erfassen der Werte
 void driveturn20()
 {
   uint16_t encCountsLeft = 0, encCountsRight = 0;
-  
-  char buf[4];
-  
-  //Anfangsreset 
-  encCountsLeft=encoders.getCountsAndResetLeft();
-  encCountsRight=encoders.getCountsAndResetRight();
-  encCountsLeft=0;
-  encCountsRight=0;
 
-  if(encoders.checkErrorLeft()||encoders.checkErrorRight()){
+  char buf[4];
+
+  // Anfangsreset
+  encCountsLeft = encoders.getCountsAndResetLeft();
+  encCountsRight = encoders.getCountsAndResetRight();
+  encCountsLeft = 0;
+  encCountsRight = 0;
+
+  if (encoders.checkErrorLeft() || encoders.checkErrorRight())
+  {
     return;
   }
-  
 
- // encCountsLeft und encCountsRight wert abändern für andere Grad Zahl 
- //encCountsLeft >-240 || encCountsRight <240 => 90°
- //encCountsLeft >-40  || encCountsRight <40  => 20° 
+  // encCountsLeft und encCountsRight wert abändern für andere Grad Zahl
+  // encCountsLeft >-240 || encCountsRight <240 => 90°
+  // encCountsLeft >-40  || encCountsRight <40  => 20°
 
-  while (encCountsLeft>-40||encCountsRight<40)
+  while (encCountsLeft > -40 || encCountsRight < 40)
   {
-    
+
     driveTurnleft();
-    
+
     encCountsLeft += encoders.getCountsAndResetLeft();
     if (encCountsLeft < 0)
     {
@@ -113,13 +112,10 @@ void driveturn20()
     {
       encCountsRight -= 1000;
     }
-
-    
-    
   }
   driveStop();
-  encCountsLeft=0;
-  encCountsRight=0;
+  encCountsLeft = 0;
+  encCountsRight = 0;
   delay(1000);
 }
 
@@ -127,26 +123,24 @@ void driveturn20()
 void driveturn15()
 {
   uint16_t encCountsLeft = 0, encCountsRight = 0;
-  
+
   char buf[4];
-  
-  //Anfangsreset 
-  encCountsLeft=encoders.getCountsAndResetLeft();
-  encCountsRight=encoders.getCountsAndResetRight();
-  encCountsLeft=0;
-  encCountsRight=0;
 
-  
+  // Anfangsreset
+  encCountsLeft = encoders.getCountsAndResetLeft();
+  encCountsRight = encoders.getCountsAndResetRight();
+  encCountsLeft = 0;
+  encCountsRight = 0;
 
- // encCountsLeft und encCountsRight wert abändern für andere Grad Zahl 
- //encCountsLeft >-240 || encCountsRight <240 => 90°
- //encCountsLeft >-40  || encCountsRight <40  => 20° 
+  // encCountsLeft und encCountsRight wert abändern für andere Grad Zahl
+  // encCountsLeft >-240 || encCountsRight <240 => 90°
+  // encCountsLeft >-40  || encCountsRight <40  => 20°
 
-  while (encCountsLeft>-30||encCountsRight<30)
+  while (encCountsLeft > -30 || encCountsRight < 30)
   {
-    
+
     driveTurnleft();
-    
+
     encCountsLeft += encoders.getCountsAndResetLeft();
     if (encCountsLeft < 0)
     {
@@ -166,50 +160,48 @@ void driveturn15()
     {
       encCountsRight -= 1000;
     }
-
-    
-    
   }
   driveStop();
-  encCountsLeft=0;
-  encCountsRight=0;
+  encCountsLeft = 0;
+  encCountsRight = 0;
   delay(1000);
 }
 
 void driveturn5()
 {
   uint16_t encCountsLeft = 0, encCountsRight = 0;
-  
+
   char buf[4];
-  
-  //Anfangsreset 
-  encCountsLeft=encoders.getCountsAndResetLeft();
-  encCountsRight=encoders.getCountsAndResetRight();
-  encCountsLeft=0;
-  encCountsRight=0;
 
-  
+  // Anfangsreset
+  encCountsLeft = encoders.getCountsAndResetLeft();
+  encCountsRight = encoders.getCountsAndResetRight();
+  encCountsLeft = 0;
+  encCountsRight = 0;
 
- // encCountsLeft und encCountsRight wert abändern für andere Grad Zahl 
- //encCountsLeft >-240 || encCountsRight <240 => 90°
- //encCountsLeft >-40  || encCountsRight <40  => 20° 
- //while (encCountsLeft<1000||encCountsRight>-1000)
-  while(((encCountsRight-encCountsLeft)/2)<9)
+  // encCountsLeft und encCountsRight wert abändern für andere Grad Zahl
+  // encCountsLeft >-240 || encCountsRight <240 => 90°
+  // encCountsLeft >-40  || encCountsRight <40  => 20°
+  // while (encCountsLeft<1000||encCountsRight>-1000)
+
+  while (((encCountsRight - encCountsLeft) / 2) < 9)
   {
-    
+
     driveTurnleft();
-    
+
     encCountsLeft += encoders.getCountsAndResetLeft();
+
     if (encCountsLeft < 0)
     {
-      encCountsLeft += 10000;
+      driveStop();
     }
-    if (encCountsRight > 9999)
+    if (encCountsRight > 50)
     {
-      encCountsLeft -= 10000;
+      driveStop();
     }
 
     encCountsRight += encoders.getCountsAndResetRight();
+    /*
     if (encCountsRight < 0)
     {
       encCountsRight += 10000;
@@ -218,40 +210,41 @@ void driveturn5()
     {
       encCountsRight -= 10000;
     }
-
-    
-    
+    */
+    if (encoders.checkErrorLeft() == true || encoders.checkErrorRight() == true)
+    {
+      driveStop();
+    }
   }
   driveStop();
-  encCountsLeft=0;
-  encCountsRight=0;
+  encCountsLeft = 0;
+  encCountsRight = 0;
   delay(1000);
 }
 
-// Drehung des Roboters um 90° nach links, wenn man vor einem Hindernis steht. 
+// Drehung des Roboters um 90° nach links, wenn man vor einem Hindernis steht.
 void driveturn90()
 {
+
   uint16_t encCountsLeft = 0, encCountsRight = 0;
-  
+
   char buf[4];
-  
-  //Anfangsreset 
-  encCountsLeft=encoders.getCountsAndResetLeft();
-  encCountsRight=encoders.getCountsAndResetRight();
-  encCountsLeft=0;
-  encCountsRight=0;
 
-  
+  // Anfangsreset
+  encCountsLeft = encoders.getCountsAndResetLeft();
+  encCountsRight = encoders.getCountsAndResetRight();
+  encCountsLeft = 0;
+  encCountsRight = 0;
 
- // encCountsLeft und encCountsRight wert abändern für andere Grad Zahl 
- //encCountsLeft >-240 || encCountsRight <240 => 90°
- //encCountsLeft >-40  || encCountsRight <40  => 20° 
+  // encCountsLeft und encCountsRight wert abändern für andere Grad Zahl
+  // encCountsLeft >-240 || encCountsRight <240 => 90°
+  // encCountsLeft >-40  || encCountsRight <40  => 20°
 
-  while (encCountsLeft>-240||encCountsRight<240)
+  while (encCountsLeft > -240 || encCountsRight < 240)
   {
-    
+
     driveTurnleft();
-    
+
     encCountsLeft += encoders.getCountsAndResetLeft();
     if (encCountsLeft < 0)
     {
@@ -271,145 +264,160 @@ void driveturn90()
     {
       encCountsRight -= 1000;
     }
-
-    
-    
   }
   driveStop();
-  encCountsLeft=0;
-  encCountsRight=0;
+  encCountsLeft = 0;
+  encCountsRight = 0;
   delay(1000);
 }
 
-//Forwärtsfahren mit Encoder und übermittelten Werten.
-void driveForwar(float howFar){
-   float encCountsLeft = 0, encCountsRight = 0;
-  
+// Forwärtsfahren mit Encoder und übermittelten Werten.
+void driveForwar(float howFar)
+{
+  float encCountsLeft = 0, encCountsRight = 0;
+
   char buf[4];
   
-  //Anfangsreset 
-  encCountsLeft=encoders.getCountsAndResetLeft();
-  encCountsRight=encoders.getCountsAndResetRight();
-  encCountsLeft=0;
-  encCountsRight=0;
+  // Anfangsreset
+  encCountsLeft = encoders.getCountsAndResetLeft();
+  encCountsRight = encoders.getCountsAndResetRight();
+  encCountsLeft = 0;
+  encCountsRight = 0;
 
-  
-
- // encCountsLeft und encCountsRight wert abändern für andere Grad Zahl 
- //encCountsLeft >-240 || encCountsRight <240 => 90°
- //encCountsLeft >-40  || encCountsRight <40  => 20° 
-
-  while (encCountsLeft<howFar||encCountsRight<howFar)
+  // encCountsLeft und encCountsRight wert abändern für andere Grad Zahl
+  // encCountsLeft >-240 || encCountsRight <240 => 90°
+  // encCountsLeft >-40  || encCountsRight <40  => 20°
+  if (wireFunktionCheck == wireReadCounter)
   {
-    float faktor;
-    if(howFar<=10){
-      faktor=0.77;
-    }
-    if(howFar>10&&howFar<30){
-      faktor=0.8;
-    }
-    if(howFar>=30&&howFar<=110){
-      faktor=1.05;
-    }
-    if(howFar>120&&howFar<=250){
-      faktor=1.1;
-    }
-    if(howFar>250){
-      faktor=1.12;
-    }
-   
-    driveForward();
-    // Umrechnung des Encoder Wertes in mm 
-    encCountsLeft += encoders.getCountsAndResetLeft()/(3.1415*faktor);
+    while (encCountsLeft < howFar || encCountsRight < howFar)
+    {
+      float faktor;
+      if (howFar <= 10)
+      {
+        faktor = 0.77;
+      }
+      if (howFar > 10 && howFar < 30)
+      {
+        faktor = 0.8;
+      }
+      if (howFar >= 30 && howFar <= 110)
+      {
+        faktor = 1.05;
+      }
+      if (howFar > 120 && howFar <= 250)
+      {
+        faktor = 1.1;
+      }
+      if (howFar > 250)
+      {
+        faktor = 1.12;
+      }
 
-    if (encCountsLeft < 0)
-    {
-      encCountsLeft += 10000;
+      driveForward();
+      // Umrechnung des Encoder Wertes in mm
+      encCountsLeft += encoders.getCountsAndResetLeft() / (3.1415 * faktor);
+
+      if (encCountsLeft < 0)
+      {
+        encCountsLeft += 10000;
+      }
+      if (encCountsRight > 9999)
+      {
+        encCountsLeft -= 10000;
+      }
+      // Umrechnung des Encoder Wertes in mm
+      encCountsRight += encoders.getCountsAndResetRight() / (3.1415 * faktor);
+      if (encCountsRight < 0)
+      {
+        encCountsRight += 10000;
+      }
+      if (encCountsRight > 9999)
+      {
+        encCountsRight -= 10000;
+      }
+
+      bumpSensors.read();
+      if(bumpSensors.rightIsPressed()||bumpSensors.leftIsPressed()){
+        driveStop();
+        return;
+      }
     }
-    if (encCountsRight > 9999)
-    {
-      encCountsLeft -= 10000;
-    }
-    //Umrechnung des Encoder Wertes in mm 
-    encCountsRight += encoders.getCountsAndResetRight()/(3.1415*faktor);
-    if (encCountsRight < 0)
-    {
-      encCountsRight += 10000;
-    }
-    if (encCountsRight > 9999)
-    {
-      encCountsRight -= 10000;
-    }
-    
   }
 
-  //driveForward();
-  //delay(1000);
+  // driveForward();
+  // delay(1000);
   driveStop();
-  encCountsLeft=0;
-  encCountsRight=0;
+  encCountsLeft = 0;
+  encCountsRight = 0;
   delay(1000);
 }
 
+// Recieve- und RequesEvents zum erhalten und übermitteln von Daten.
+void receiveEvent(int howMany)
+{
 
-// Recieve- und RequesEvents zum erhalten und übermitteln von Daten. 
-void receiveEvent(int howMany){
-  
-  
-  while(Wire.available()){
-    char rxChar=Wire.read();
-    // '10' wird nicht richtig übertragen / Empfangen => keine Aktion
-    if(rxChar==1){
-      driveturn20();
+  while (Wire.available())
+  {
+    char rxChar = Wire.read();
     
+    // '10' wird nicht richtig übertragen / Empfangen => keine Aktion
+
+    if (rxChar == 1)
+    {
+      driveturn20();
     }
-    if(rxChar==2){
+    if (rxChar == 2)
+    {
       driveturn90();
     }
-    if(rxChar==3){
+    if (rxChar == 3)
+    {
       driveturn15();
-     
     }
-    if(rxChar==4){
+    if (rxChar == 4)
+    {
       driveturn5();
-      
     }
-    if(rxChar==5){
-      DriveTest=1;
+    if (rxChar == 5)
+    {
+      DriveTest = 1;
     }
-    if(rxChar==6){
+    if (rxChar == 6)
+    {
       driveTurnleft();
     }
-    if(rxChar==7){
-      DriveTest=0;
+    if (rxChar == 7)
+    {
+      DriveTest = 0;
     }
-    if(rxChar==8){  //Einführung der Fahrübertragung
-      DriveTest=1;
+    if (rxChar == 8)
+    { // Einführung der Fahrübertragung
+      DriveTest = 1;
     }
-    rxChar=0;
+    // rxChar=0;
     /*
     else{
-      
+
       Serial.println(rxChar);
       // value[charCount++]=rxChar;
       driveForwar(value);
       charCount++; //Zum springen im Array um den Wert zu schreiben
-   
+
 
     }
     */
   }
 }
 
-//SendeEvent noch nicht eingefügt, um eine Rückgabe zu machen. 
-void requestEvent(){
-
+// SendeEvent noch nicht eingefügt, um eine Rückgabe zu machen.
+void requestEvent()
+{
 }
 
+// Initialisierung der Funktionen
+void setup()
+{
 
-//Initialisierung der Funktionen
-void setup() {
-  
   Serial.begin(115200);
   delay(2000);
   Serial.println("");
@@ -423,8 +431,8 @@ void setup() {
   Serial.println("done.");
 
   // Handler für das I2C-Empfangsereignis festlegen
-  Wire.onReceive(receiveEvent);//Zum Empfangen
-  Wire.onRequest(requestEvent);//Zum Senden
+  Wire.onReceive(receiveEvent); // Zum Empfangen
+  Wire.onRequest(requestEvent); // Zum Senden
 
   Serial.print("calibrating bump sensors...");
   bumpSensors.calibrate();
@@ -432,20 +440,21 @@ void setup() {
   Serial.print("waiting for I2C master");
   // Code von Herr Lübbers Ende
   bumpSensors.calibrate();
-  
-  
+
   encoders.init();
 
   // imu.init();
 }
 
-void loop() {
-  //Vorwärts fahren über Encoder
-  while(DriveTest==1){
-    DriveTest=0;
-    driveForwar(300); //Hiermit fährt der Roboter nach vorne in mm 
+void loop()
+{
+  // Vorwärts fahren über Encoder
+  while (DriveTest == 1)
+  {
+    DriveTest = 0;
+    driveForwar(300); // Hiermit fährt der Roboter nach vorne in mm
   }
-  
+
   // Forwärtsfahren über Sensoren (War nicht sehr gut)
   /*
   while(DriveTest==1){
