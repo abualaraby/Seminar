@@ -42,11 +42,19 @@ float yValues5[72];
 float xValues15[24];
 float yValues15[24];
 
+float xDrive=0; 
+float yDrive=0; 
+float angleDrive=0;
+
+
+
 float longSideX = 0;
 float longSideY = 0;
 float shortSideX = 0;
 float shortSideY = 0;
 
+uint8_t xPosition=65;
+uint8_t yPosition=140;
 uint8_t cursorX = 65;
 uint8_t cursorY = 140;
 bool mapIsOpen = false;
@@ -127,7 +135,7 @@ void initToFs()
       // the minimum timing budget is 20 ms for short distance mode and 33 ms for
       // medium and long distance modes. See the VL53L1X datasheet for more
       // information on range and timing limits.
-      sensor[i].setDistanceMode(VL53L1X::Short);
+      sensor[i].setDistanceMode(VL53L1X::Long);
       sensor[i].setMeasurementTimingBudget(50000);
 
       // Start continuous readings at a rate of one measurement every 50 ms (the
@@ -609,7 +617,7 @@ void measurement5()
     Robotturn5(); // Roboterbewegung der Zahlenwert gibt die Gradzahl an.
   }
 
-  if (position >= 72)
+  if (position >= 71)
   {
     position = 0;
   }
@@ -622,7 +630,7 @@ void measurement5()
 // Umrechnen der Werte in X Koordinaten (5° Schritte)
 void convertMeasuermentX5()
 {
-  displayReset();
+  
   tft.setCursor(0, 0);
   tft.setTextColor(TFT_BROWN);
   tft.print("xWerte");
@@ -643,7 +651,7 @@ void convertMeasurementY5()
   }
 }
 
-// Zeichnen einer Karte aufgrund von Messdaten
+// Zeichnen einer Karte aufgrund von Messdaten (1 Messung)
 void mapDrawing()
 {
   // Max x = 134; Max y=239
@@ -661,9 +669,9 @@ void mapDrawing()
     roundValueX = xValues5[i] / 10;
     roundValueY = yValues5[i] / 10;
 
-    tft.drawPixel(65 - (roundValueX), 140 - (roundValueY), TFT_BLUE);
+    tft.drawPixel(xPosition - (roundValueX), yPosition- (roundValueY), TFT_BLUE);
   }
-  /*
+  /* Zum einzegen der Karte in unterschiedlichen Farben um  die Seiten zu erkennen 
   tft.drawPixel(65 - (xValues5[0] / 10), 139 - (yValues5[0] / 10), TFT_RED);
   tft.drawPixel(65 - (xValues5[17] / 10), 139 - (yValues5[17] / 10), TFT_BLUE);
   tft.drawPixel(65 - (xValues5[35] / 10), 139 - (yValues5[35] / 10), TFT_BROWN);
@@ -677,6 +685,8 @@ void mapDrawing()
  */
 }
 
+// Funktionen zum setzen eines Cursors auf dem Bildschirm, um später den Roboter dort 
+// hin fahren zu lassen. 
 void mapCursorMoveX()
 {
   cursorX++;
@@ -690,22 +700,67 @@ void mapCursorMoveX()
   else{
   tft.drawPixel(cursorX, cursorY, TFT_GOLD);
   tft.drawPixel(cursorX - 1, cursorY, TFT_BLACK);
+  
   } 
 }
 void mapCursorMoveY()
 {
-  cursorY++;
-  if (cursorY == 239)
+  cursorY--;
+  if (cursorY == 20)
   {
-    cursorY = 20;
+    cursorY = 239;
     tft.drawPixel(cursorX,cursorY,TFT_GOLD);
-    tft.drawPixel(cursorX,238,TFT_GOLD);
+    tft.drawPixel(cursorX,21,TFT_GOLD);
 
   }
   else{
   tft.drawPixel(cursorX, cursorY, TFT_GOLD);
-  tft.drawPixel(cursorX, cursorY - 1, TFT_BLACK);
+  tft.drawPixel(cursorX, cursorY + 1, TFT_BLACK);
   }
+}
+
+void resetCursor(){
+  cursorX=xPosition;
+  cursorY=yPosition;
+
+}
+// Konvertierung der Cursor Position um den Roboter dort hin fahren zu lassen.
+void convertCursorPosition(){
+    xDrive=cursorX*10-650;
+    yDrive=(cursorY*10-1400)*-1;
+    
+    angleDrive=atan(yDrive/xDrive)*RAD_TO_DEG ;
+    
+    
+   
+    
+    /*
+    Serial.println(xResult);
+    Serial.printf("y Value: ");
+    Serial.println(yResult);
+    Serial.printf("Angle: ");
+    Serial.println(angleResult);
+
+    displayReset();
+    tft.setCursor(0,0);
+    tft.setTextColor(TFT_WHITE);
+    tft.println("Fahrziel");
+    */
+
+    displayReset();
+    tft.setCursor(0,10);
+    tft.setTextColor(TFT_GREEN);
+    tft.printf("x Wert: %f ",xDrive);
+    
+
+    tft.setCursor(0,20);
+    tft.printf("y Wert: %f",yDrive);
+    
+
+    tft.setCursor(0,30);
+    tft.printf("Winkel: %f ",angleDrive);
+    
+
 }
 
 
@@ -944,22 +999,22 @@ void loop()
   if (doubleclick2 == true)
   {
     doubleclick2 = false;
-    if (mapIsOpen == true)
-    {
-      mapCursorMoveY();
-    }
-    else
-    {
+   // if (mapIsOpen == true)
+   // {
+   //   mapCursorMoveY();
+   // }
+   // else
+   // {
       displayReset();
-
-      Robotdirve1();
+      convertCursorPosition();
+      //Robotdirve1();
       tft.setCursor(0,0);
       tft.setTextColor(TFT_GREEN);
       tft.println("Robot is Driving");
 
       
       mapIsOpen = false;
-    }
+    //}
   }
   if (longclick1 == true)
   {
@@ -969,7 +1024,8 @@ void loop()
   }
   if (longclick2 == true)
   {
+    //convertCursorPosition();
     longclick2 = false;
-    mapIsOpen = false;
+    //mapIsOpen = false;
   }
 }
