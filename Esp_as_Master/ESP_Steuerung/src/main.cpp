@@ -33,7 +33,9 @@ uint8_t menu = 0;
 uint8_t movcolum = 0;
 uint8_t movrow = 0;
 
-int position = 0;             // Variable zum Definieren der Position
+uint8_t measurementCount = 0;
+int position = measurementCount * 71; // Variable zum Definieren der Position
+int safePosition = 0;
 float measurementvalue15[24]; // Ausgabe der Drehmessung
 float measurementvalue5[72];
 
@@ -42,26 +44,28 @@ float yValues5[72];
 float xValues15[24];
 float yValues15[24];
 
-float xDrive=0; 
-float yDrive=0; 
-float angleDrive=0;
+String Xcoords[] = {"", "", "", ""};
+String Ycoords[] = {"", "", "", ""};
 
-
+float xDrive = 0;
+float yDrive = 0;
+float angleDrive = 0;
+uint8_t angleCount = 3;
 
 float longSideX = 0;
 float longSideY = 0;
 float shortSideX = 0;
 float shortSideY = 0;
 
-uint8_t xPosition=65;
-uint8_t yPosition=140;
+uint8_t xPosition = 65;
+uint8_t yPosition = 140;
 uint8_t cursorX = 65;
 uint8_t cursorY = 140;
 bool mapIsOpen = false;
 
 // Wifi Konfiguration
-#define WIFI_NETWORK "Drei"        // WIFI Name
-#define WIFI_PASSWORD "Howyoudoin" // WIFI Password
+#define WIFI_NETWORK "Chris1"               //"Drei"        // WIFI Name
+#define WIFI_PASSWORD "tqor8485"                      //"Howyoudoin" // WIFI Password
 #define WIFI_TIMEOUT 10000         // 20000       // in milliseconds
 
 #define BUTTON_1 0
@@ -435,12 +439,7 @@ void soloSensorOutput()
 
 // Funktionen zum Senden von Befehlen
 // '10' wird nicht richtig übertragen, weil der Wert dann über12000 ist/ Empfangen => keine Aktion
-void Robotturn20()
-{
-  Wire.beginTransmission(Roboter_ID);
-  Wire.write(1);
-  Wire.endTransmission();
-}
+
 
 void Robotturn90()
 {
@@ -449,12 +448,7 @@ void Robotturn90()
   Wire.endTransmission();
 }
 
-void Robotturn15()
-{
-  Wire.beginTransmission(Roboter_ID);
-  Wire.write(3);
-  Wire.endTransmission();
-}
+
 void Robotturn5()
 {
   Wire.beginTransmission(Roboter_ID);
@@ -463,12 +457,15 @@ void Robotturn5()
 }
 
 // Roboter vor Fahren lassen
+
 void RobotForward()
 {
   Wire.beginTransmission(Roboter_ID);
   Wire.write(5);
   Wire.endTransmission();
 }
+
+
 void turnLeft()
 {
   Wire.beginTransmission(Roboter_ID);
@@ -490,10 +487,22 @@ void Robotsend()
   Wire.endTransmission();
 }
 
-void Robotdirve1()
+void Robotdirve10()
 {
   Wire.beginTransmission(Roboter_ID);
-  Wire.write(8);
+  Wire.write(1);
+  Wire.endTransmission();
+}
+
+void Robotdrive50(){
+  Wire.beginTransmission(Roboter_ID);
+  Wire.write(2);
+  Wire.endTransmission();
+}
+
+void Robotdrive100(){
+  Wire.beginTransmission(Roboter_ID);
+  Wire.write(3);
   Wire.endTransmission();
 }
 
@@ -565,7 +574,7 @@ void measurement15()
     measurementvalue15[position] = sensorRead();
     Serial.println(measurementvalue15[position]);
     delay(100);
-    Robotturn15(); // Roboterbewegung der Zahlenwert gibt die Gradzahl an.
+    //Robotturn15(); // Roboterbewegung der Zahlenwert gibt die Gradzahl an.
 
     delay(100);
     if (position < 15)
@@ -610,31 +619,32 @@ void measurement5()
 
   for (position = 0; position < 72; position++)
   { // Bei 5° Schritten position <72, bei 15°Schritten position<24
-    delay(50);
+    //delay(50);
     measurementvalue5[position] = sensor3Read();
     Serial.println(measurementvalue5[position]);
-    delay(50);
+    //delay(50);
     Robotturn5(); // Roboterbewegung der Zahlenwert gibt die Gradzahl an.
   }
 
-  if (position >= 71)
+  if (position < 72)
   {
     position = 0;
   }
 
-  tft.setCursor(80, 0); // 80,25*(24+1-18)
-  tft.setTextColor(TFT_BLUE);
-  tft.print(measurementvalue5[72]);
+  // tft.setCursor(80, 0); // 80,25*(24+1-18)
+  // tft.setTextColor(TFT_BLUE);
+  // tft.print(measurementvalue5[72]);
 }
 
 // Umrechnen der Werte in X Koordinaten (5° Schritte)
 void convertMeasuermentX5()
 {
   
-  tft.setCursor(0, 0);
-  tft.setTextColor(TFT_BROWN);
-  tft.print("xWerte");
-  for (position = 0; position < 72; position++)
+  // tft.setCursor(0, 0);
+  // tft.setTextColor(TFT_BROWN);
+  // tft.print("xWerte");
+
+  for (position = measurementCount * 72; position < 72 + (measurementCount * 72); position++)
   {
     xValues5[position] = (cosf(5 * position * DEG_TO_RAD)) * measurementvalue5[position];
   }
@@ -645,7 +655,8 @@ void convertMeasuermentX5()
 // Umrechnen der Daten in Y Koordinaten ( 5° Schritte)
 void convertMeasurementY5()
 {
-  for (position = 0; position < 72; position++)
+
+  for (position = measurementCount * 72; position < 72 + (measurementCount * 72); position++)
   {
     yValues5[position] = sinf(5 * position * DEG_TO_RAD) * measurementvalue5[position];
   }
@@ -663,13 +674,14 @@ void mapDrawing()
 
   int roundValueX = 0;
   int roundValueY = 0;
-  tft.drawCircle(65, 140,2, TFT_ORANGE);
-  for (uint8_t i = 0; i < 72; i++)
+  tft.drawPixel(xPosition, yPosition, TFT_ORANGE);
+
+  for (uint8_t i = 0 + (measurementCount * 72); i < 72 + (measurementCount * 72); i++)
   {
     roundValueX = xValues5[i] / 10;
     roundValueY = yValues5[i] / 10;
 
-    tft.drawPixel(xPosition - (roundValueX), yPosition- (roundValueY), TFT_BLUE);
+    tft.drawPixel(xPosition - (roundValueY), yPosition- (roundValueX), TFT_WHITE);
   }
   /* Zum einzegen der Karte in unterschiedlichen Farben um  die Seiten zu erkennen 
   tft.drawPixel(65 - (xValues5[0] / 10), 139 - (yValues5[0] / 10), TFT_RED);
@@ -684,6 +696,15 @@ void mapDrawing()
  tft.drawCircle(65-(xValues5[53] / 10), 139 - (yValues5[53] / 10),1, TFT_GREEN);
  */
 }
+
+void mapPosition()
+{
+  xPosition = xDrive / 10;
+  yPosition = yDrive / 10;
+  angleDrive;
+}
+
+// Nächste Messung
 
 // Funktionen zum setzen eines Cursors auf dem Bildschirm, um später den Roboter dort 
 // hin fahren zu lassen. 
@@ -725,12 +746,12 @@ void resetCursor(){
 
 }
 // Konvertierung der Cursor Position um den Roboter dort hin fahren zu lassen.
-void convertCursorPosition(){
-    xDrive=cursorX*10-650;
-    yDrive=(cursorY*10-1400)*-1;
+void convertCursorPosition()
+{
+  xDrive = (cursorX - xPosition) * 10;
+  yDrive = (cursorY - yPosition) * -10;
     
-    angleDrive=atan(yDrive/xDrive)*RAD_TO_DEG ;
-    
+  angleDrive = atan(yDrive / xDrive) * RAD_TO_DEG;
     
    
     
@@ -764,37 +785,9 @@ void convertCursorPosition(){
 }
 
 
-// Roboter aufgrund der Sensordaten 1 cm vor Fahren lassen.
-// Die Zeit den weg Über die Sensoren abzufragen hat mit unserer Programmierung zu lange gedauert 
 
-void Drive10()
-{
-  sensorRead();
-  displayReset();
-  tft.setCursor(0, 0);
-  tft.setTextColor(TFT_GREEN);
-  tft.println("10cm Forwärtsfahren");
-  int now = sensorRead();
 
-  int drive = now - 2;
-  tft.setTextColor(TFT_RED);
-  tft.print("Ziel: ");
-  tft.print(drive);
-  RobotForward();
-  tft.setTextColor(TFT_GOLD);
-  while (now > drive)
-  {
-    tft.fillRect(0, 50, 100, 100, TFT_BLACK);
-    tft.setCursor(0, 50);
-    tft.print("Momentan: ");
-    tft.print(now);
-    now = sensorRead();
-  }
-  RobotStop();
-  tft.setCursor(0, 70);
-  tft.print("Endvalue: ");
-  tft.print(now);
-}
+
 
 /**
  * Funktion zum Hochladen der X und Y Koordinaten der Karte auf ThingSpeak.
@@ -829,6 +822,62 @@ void uploadMap5()
   ThingSpeak.setField(3, Ycoords[0]);
   ThingSpeak.setField(4, Ycoords[1]);
   ThingSpeak.writeFields(CHANNEL_ID, CHANNEL_API_KEY);
+}
+
+/**
+ * @brief
+ *
+ * @param isFirst
+ * @param distance
+ */
+void buildData(bool isFirst, int distance = 500)
+{
+  int offset = 2;
+  if (isFirst)
+  {
+    Xcoords[0] += distance;
+    Xcoords[0] += "|";
+    offset = 0;
+  }
+
+  for (int j = 0; j < 2; j++)
+  {
+    bool isFirst = true;
+    for (int i = 0; i < 36; i++)
+    {
+      if (!isFirst)
+      {
+        Xcoords[j + offset] += ";";
+        Ycoords[j + offset] += ";";
+      }
+
+      Xcoords[j + offset] += (int)xValues5[i + (36 * j)];
+      Ycoords[j + offset] += (int)yValues5[i + (36 * j)];
+      isFirst = false;
+    }
+  }
+}
+
+/**
+ * @brief 
+ * 
+ */
+void uploadMap()
+{
+  // Uploading map data
+  for (int i = 0; i < 4; i++)
+  {
+    ThingSpeak.setField(i + 1, Xcoords[i]);
+    ThingSpeak.setField(i + 5, Ycoords[i]);
+  }
+  ThingSpeak.writeFields(CHANNEL_ID, CHANNEL_API_KEY);
+
+  // Resetting string arrays for next use
+  for (int i = 0; i < 4; i++)
+  {
+    Xcoords[i] = "";
+    Ycoords[i] = "";
+  }
 }
 
 void setup()
@@ -869,8 +918,8 @@ void setup()
   btn1.setLongClickDetectedHandler(longClickHandler1);
   btn2.setLongClickDetectedHandler(longClickHandler2);
 
-  btn1.setDebounceTime(20);
-  btn2.setDebounceTime(20);
+  btn1.setDebounceTime(50);
+  btn2.setDebounceTime(50);
   btn1.setLongClickTime(3000);
   btn2.setLongClickTime(3000);
   ThingSpeak.begin(client); // to initilize the thingspeak library
@@ -908,7 +957,7 @@ void loop()
     // Aktion linker Doppelknopfdruck
     tft.println("Doppelklick Links  = ");
     tft.println("");
-    tft.println("Einzelne Rundummessung");
+    tft.println("Doppelte Rundummessung");
     tft.println("Mit Bildschirmausgabe und upload");
 
     tft.println("");
@@ -916,7 +965,7 @@ void loop()
     // Aktion rechter Doppelknopfdruck 30 cm nach vorne fahren
     tft.println("Doppelklick Rechts = ");
     tft.println("");
-    tft.println("30 cm nach vorne");
+    tft.println("50 cm nach vorne");
     tft.println("fahren ohne");
     tft.println("ohne Sensordaten");
     tft.println("");
@@ -930,7 +979,7 @@ void loop()
     tft.setTextColor(TFT_RED);
     tft.println("Langer Klick Rechts = ");
     tft.println("");
-    tft.println("fahrt befehl");
+    tft.println("Leer");
   }
 
   if (click1 == true)
@@ -982,12 +1031,25 @@ void loop()
       tft.println("SoloMeasurement ");
       tft.print("Counts: ");
       tft.print(Buttoncount1);
+
       measurement5();
       convertMeasuermentX5();
       convertMeasurementY5();
       mapDrawing();
 
-      uploadMap5();
+      buildData(true, 0);
+      delay(20000);
+      //Robotdrive50();
+      //delay(5000);
+
+      measurement5();
+      convertMeasuermentX5();
+      convertMeasurementY5();
+      mapDrawing();
+
+      buildData(false);
+      uploadMap();
+
       tft.setCursor(75, 0);
       tft.setTextColor(TFT_GREEN);
       tft.print("done");
@@ -1006,8 +1068,10 @@ void loop()
    // else
    // {
       displayReset();
-      convertCursorPosition();
-      //Robotdirve1();
+      //convertCursorPosition();
+      delay(2000);
+      Robotdirve10();
+      
       tft.setCursor(0,0);
       tft.setTextColor(TFT_GREEN);
       tft.println("Robot is Driving");

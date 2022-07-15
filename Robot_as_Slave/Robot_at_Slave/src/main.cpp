@@ -37,16 +37,93 @@ bool sendID = true; // if true, output is ID of robot, if flase, output is senso
 const int RoboterAdr = 5;
 
 int test = 0;
-bool DriveTest;
+uint8_t DriveTest=0;
 bool StopTest;
 bool wireReadCounter = 0;
 bool wireFunktionCheck = 0;
 
+// Fahren Internet
+unsigned long currentMillis;
+unsigned long prevMillis;
+const unsigned long Period = 20;
+
+long countsLeft = 0;
+long countsRight = 0;
+long prevLeft = 0;
+long prevRight = 0;
+
+bool requestDrive = false;
+
+const int CLICKS_PER_ROTATION = 12;
+const float GEAR_RATIO = 29.86F;
+const float WHEEL_DIAMETER = 3.2;
+const int WHEEL_CIRCUMFERENCE = 10.0351;
+
+float Sl = 0.0F;
+float Sr = 0.0F;
+
+void checkEncoders(float howFar)
+{
+
+  while (((Sl + Sr) / 2) < howFar)
+  {
+    
+    if (requestDrive == true)
+    {
+      currentMillis = millis();
+      if (currentMillis > prevMillis + Period)
+      {
+        countsLeft += encoders.getCountsAndResetLeft();
+        countsRight += encoders.getCountsAndResetRight();
+
+        Sl += ((countsLeft - prevLeft) / (CLICKS_PER_ROTATION * GEAR_RATIO) * WHEEL_CIRCUMFERENCE);
+        Sr += ((countsRight - prevRight) / (CLICKS_PER_ROTATION * GEAR_RATIO) * WHEEL_CIRCUMFERENCE);
+
+        int wheelSpeed = 75;
+
+        if (Sr < 60 || Sl < 60)
+        {
+          if (Sr > 50 || Sl > 50)
+          {
+            wheelSpeed = 75 * ((30 - Sr) / 10);
+            if (wheelSpeed < 40)
+            {
+              wheelSpeed = 40;
+            }
+          }
+
+          motors.setSpeeds(wheelSpeed-5, wheelSpeed);         // Roboter komplett
+          //motors.setSpeeds(wheelSpeed, wheelSpeed);         // Roboter 1 Sensor 
+        }
+
+        prevLeft = countsLeft;
+        prevRight = countsRight;
+
+        prevMillis = currentMillis;
+      }
+    }
+    if(requestDrive==false){
+      requestDrive=true;
+      prevMillis=millis();
+      prevLeft=0;
+      prevRight=0;
+
+    }
+  }
+  Sl = 0;
+  Sr = 0;
+  countsLeft = 0;
+  countsRight = 0;
+  motors.setSpeeds(0, 0);
+  requestDrive=false;
+}
+
 // Fahrtrichtungen Geschwindigkeitsfunktionen
 // Setzen wir hier zuvor fest, um weniger Arbeit zu haben.
+
 void driveForward()
 {
-  motors.setSpeeds(50, 50);
+  motors.setSpeeds(43, 50); // stand 46,50 komplett ohne gewichte
 }
 void driveBackward()
 {
@@ -66,107 +143,6 @@ void driveTurnright()
   motors.setSpeeds(150, -150);
 }
 
-// 20° Drehung des Roboters zum erfassen der Werte
-void driveturn20()
-{
-  uint16_t encCountsLeft = 0, encCountsRight = 0;
-
-  char buf[4];
-
-  // Anfangsreset
-  encCountsLeft = encoders.getCountsAndResetLeft();
-  encCountsRight = encoders.getCountsAndResetRight();
-  encCountsLeft = 0;
-  encCountsRight = 0;
-
-  if (encoders.checkErrorLeft() || encoders.checkErrorRight())
-  {
-    return;
-  }
-
-  // encCountsLeft und encCountsRight wert abändern für andere Grad Zahl
-  // encCountsLeft >-240 || encCountsRight <240 => 90°
-  // encCountsLeft >-40  || encCountsRight <40  => 20°
-
-  while (encCountsLeft > -40 || encCountsRight < 40)
-  {
-
-    driveTurnleft();
-
-    encCountsLeft += encoders.getCountsAndResetLeft();
-    if (encCountsLeft < 0)
-    {
-      encCountsLeft += 1000;
-    }
-    if (encCountsRight > 999)
-    {
-      encCountsLeft -= 1000;
-    }
-
-    encCountsRight += encoders.getCountsAndResetRight();
-    if (encCountsRight < 0)
-    {
-      encCountsRight += 1000;
-    }
-    if (encCountsRight > 999)
-    {
-      encCountsRight -= 1000;
-    }
-  }
-  driveStop();
-  encCountsLeft = 0;
-  encCountsRight = 0;
-  delay(1000);
-}
-
-// 20° Drehung des Roboters zum erfassen der Werte
-void driveturn15()
-{
-  uint16_t encCountsLeft = 0, encCountsRight = 0;
-
-  char buf[4];
-
-  // Anfangsreset
-  encCountsLeft = encoders.getCountsAndResetLeft();
-  encCountsRight = encoders.getCountsAndResetRight();
-  encCountsLeft = 0;
-  encCountsRight = 0;
-
-  // encCountsLeft und encCountsRight wert abändern für andere Grad Zahl
-  // encCountsLeft >-240 || encCountsRight <240 => 90°
-  // encCountsLeft >-40  || encCountsRight <40  => 20°
-
-  while (encCountsLeft > -30 || encCountsRight < 30)
-  {
-
-    driveTurnleft();
-
-    encCountsLeft += encoders.getCountsAndResetLeft();
-    if (encCountsLeft < 0)
-    {
-      encCountsLeft += 1000;
-    }
-    if (encCountsRight > 999)
-    {
-      encCountsLeft -= 1000;
-    }
-
-    encCountsRight += encoders.getCountsAndResetRight();
-    if (encCountsRight < 0)
-    {
-      encCountsRight += 1000;
-    }
-    if (encCountsRight > 999)
-    {
-      encCountsRight -= 1000;
-    }
-  }
-  driveStop();
-  encCountsLeft = 0;
-  encCountsRight = 0;
-  delay(1000);
-}
-
 void driveturn5()
 {
   uint16_t encCountsLeft = 0, encCountsRight = 0;
@@ -184,7 +160,7 @@ void driveturn5()
   // encCountsLeft >-40  || encCountsRight <40  => 20°
   // while (encCountsLeft<1000||encCountsRight>-1000)
 
-  while (((encCountsRight - encCountsLeft) / 2) < 8)
+  while (((encCountsRight - encCountsLeft) / 2) < 8.85)
   {
 
     driveTurnleft();
@@ -215,13 +191,12 @@ void driveturn5()
     {
       driveStop();
       encoders.init();
-      
     }
   }
   driveStop();
   encCountsLeft = 0;
   encCountsRight = 0;
-  //delay(50);
+  // delay(50);
 }
 
 // Drehung des Roboters um 90° nach links, wenn man vor einem Hindernis steht.
@@ -277,9 +252,10 @@ void driveturn90()
 void driveForwar(float howFar)
 {
   float encCountsLeft = 0, encCountsRight = 0;
+  encoders.init();
 
   char buf[4];
-  
+
   // Anfangsreset
   encCountsLeft = encoders.getCountsAndResetLeft();
   encCountsRight = encoders.getCountsAndResetRight();
@@ -312,7 +288,7 @@ void driveForwar(float howFar)
       }
       if (howFar > 250)
       {
-        faktor = 1.12;
+        faktor = 1.1;
       }
 
       driveForward();
@@ -339,7 +315,8 @@ void driveForwar(float howFar)
       }
 
       bumpSensors.read();
-      if(bumpSensors.rightIsPressed()||bumpSensors.leftIsPressed()){
+      if (bumpSensors.rightIsPressed() || bumpSensors.leftIsPressed())
+      {
         driveStop();
         return;
       }
@@ -361,29 +338,26 @@ void receiveEvent(int howMany)
   while (Wire.available())
   {
     char rxChar = Wire.read();
-    
+
     // '10' wird nicht richtig übertragen / Empfangen => keine Aktion
 
     if (rxChar == 1)
     {
-      driveturn20();
+      DriveTest=1;
     }
     if (rxChar == 2)
     {
-      driveturn90();
+      DriveTest=2;
     }
     if (rxChar == 3)
     {
-      driveturn15();
+      DriveTest=3;
     }
     if (rxChar == 4)
     {
       driveturn5();
     }
-    if (rxChar == 5)
-    {
-      DriveTest = 1;
-    }
+   
     if (rxChar == 6)
     {
       driveTurnleft();
@@ -392,10 +366,7 @@ void receiveEvent(int howMany)
     {
       DriveTest = 0;
     }
-    if (rxChar == 8)
-    { // Einführung der Fahrübertragung
-      DriveTest = 1;
-    }
+    
     // rxChar=0;
     /*
     else{
@@ -453,8 +424,24 @@ void loop()
   // Vorwärts fahren über Encoder
   while (DriveTest == 1)
   {
+    //Entfernungen 
+    //10cm=   9
+    //50cm = 53
+    checkEncoders(9);
+
     DriveTest = 0;
-    driveForwar(300); // Hiermit fährt der Roboter nach vorne in mm
+    // driveForwar(300); // Hiermit fährt der Roboter nach vorne in mm
+  }
+
+  while(DriveTest==2){
+    checkEncoders(53);
+    DriveTest=0;
+
+  }
+
+  while(DriveTest==3){
+    checkEncoders(100);
+    DriveTest=0;
   }
 
   // Forwärtsfahren über Sensoren (War nicht sehr gut)
