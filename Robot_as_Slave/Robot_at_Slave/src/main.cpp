@@ -160,7 +160,10 @@ void driveturn5()
   // encCountsLeft >-40  || encCountsRight <40  => 20°
   // while (encCountsLeft<1000||encCountsRight>-1000)
 
+
   while (((encCountsRight - encCountsLeft) / 2) < 8.85)
+
+
   {
 
     driveTurnleft();

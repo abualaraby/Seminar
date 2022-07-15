@@ -830,7 +830,9 @@ void uploadMap5()
  * @param isFirst
  * @param distance
  */
+
 void buildData(bool isFirst, int distance = 500)
+
 {
   int offset = 2;
   if (isFirst)
@@ -1032,20 +1034,23 @@ void loop()
       tft.print("Counts: ");
       tft.print(Buttoncount1);
 
-      measurement5();
-      convertMeasuermentX5();
-      convertMeasurementY5();
-      mapDrawing();
-
-      buildData(true, 0);
-      delay(20000);
-      //Robotdrive50();
-      //delay(5000);
 
       measurement5();
       convertMeasuermentX5();
       convertMeasurementY5();
       mapDrawing();
+
+
+      buildData(true, 500);
+      delay(2000);
+      Robotdrive50();
+      delay(5000);
+
+      measurement5();
+      convertMeasuermentX5();
+      convertMeasurementY5();
+      mapDrawing();
+
 
       buildData(false);
       uploadMap();
