@@ -42,6 +42,9 @@ float yValues5[72];
 float xValues15[24];
 float yValues15[24];
 
+String Xcoords[] = {"", "", "", ""};
+String Ycoords[] = {"", "", "", ""};
+
 float xDrive=0; 
 float yDrive=0; 
 float angleDrive=0;
@@ -831,6 +834,62 @@ void uploadMap5()
   ThingSpeak.writeFields(CHANNEL_ID, CHANNEL_API_KEY);
 }
 
+/**
+ * @brief
+ *
+ * @param isFirst
+ * @param distance
+ */
+void buildData(bool isFirst, int distance = 300)
+{
+  int offset = 2;
+  if (isFirst)
+  {
+    Xcoords[0] += distance;
+    Xcoords[0] += "|";
+    offset = 0;
+  }
+
+  for (int j = 0; j < 2; j++)
+  {
+    bool isFirst = true;
+    for (int i = 0; i < 36; i++)
+    {
+      if (!isFirst)
+      {
+        Xcoords[j + offset] += ";";
+        Ycoords[j + offset] += ";";
+      }
+
+      Xcoords[j + offset] += (int)xValues5[i + (36 * j)];
+      Ycoords[j + offset] += (int)yValues5[i + (36 * j)];
+      isFirst = false;
+    }
+  }
+}
+
+/**
+ * @brief 
+ * 
+ */
+void uploadMap()
+{
+  // Uploading map data
+  for (int i = 0; i < 4; i++)
+  {
+    ThingSpeak.setField(i + 1, Xcoords[i]);
+    ThingSpeak.setField(i + 5, Ycoords[i]);
+  }
+  ThingSpeak.writeFields(CHANNEL_ID, CHANNEL_API_KEY);
+
+  // Resetting string arrays for next use
+  for (int i = 0; i < 4; i++)
+  {
+    Xcoords[i] = "";
+    Ycoords[i] = "";
+  }
+}
+
 void setup()
 {
 
@@ -982,12 +1041,23 @@ void loop()
       tft.println("SoloMeasurement ");
       tft.print("Counts: ");
       tft.print(Buttoncount1);
+
       measurement5();
       convertMeasuermentX5();
       convertMeasurementY5();
       mapDrawing();
 
-      uploadMap5();
+      buildData(true, 300);
+      Robotdirve1();
+
+      measurement5();
+      convertMeasuermentX5();
+      convertMeasurementY5();
+      mapDrawing();
+
+      buildData(false);
+      uploadMap();
+
       tft.setCursor(75, 0);
       tft.setTextColor(TFT_GREEN);
       tft.print("done");
