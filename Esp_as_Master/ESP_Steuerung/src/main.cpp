@@ -1,14 +1,14 @@
 #include <Arduino.h>
 #include <Arduino.h>
-#include "WiFi.h"
-#include <TFT_eSPI.h>
+#include "WiFi.h"       // Für Wlan-Verbindung
+#include <TFT_eSPI.h>   // Für den ESP32 und das Bildschirm
 #include <SPI.h>
 #include <Wire.h>
-#include "VL53L1X.h"
+#include "VL53L1X.h"    // Für die Sensoren
 #include "secrets.h"
 #include "splash.h"
 #include "Button2.h"
-#include "ThingSpeak.h"
+#include "ThingSpeak.h" // Für die Verbindung mit ThingSpeak
 
 #define CHANNEL_ID 1713470                 // Chris: 1759092 // Ahmed:1713470                 // Channel ID on Thingspeak
 #define CHANNEL_API_KEY "K7G57B13MZEUEGW7" // Chris: KBZPVDC83RELSMFS // Ahmed: "K7G57B13MZEUEGW7" // API Read Key from Thingspeak
@@ -44,8 +44,8 @@ float yValues5[72]; //Variable zum speichern der Messwerte y
 float xValues15[24];
 float yValues15[24];
 
-String Xcoords[] = {"", "", "", ""};
-String Ycoords[] = {"", "", "", ""};
+String Xcoords[] = {"", "", "", ""}; // Variable zum Speichern Die X-Koordinate in einem Stringkette
+String Ycoords[] = {"", "", "", ""}; // Variable zum Speichern Die Y-Koordinate in einem Stringkette
 
 float xDrive = 0;
 float yDrive = 0;
@@ -170,7 +170,7 @@ void connectToWiFi() // Function to connect to wifi
 {
   tft.println("Connecting to WiFi");
   Serial.print("Connecting to WiFi");
-  WiFi.mode(WIFI_STA);
+  WiFi.mode(WIFI_STA); // STA = Station (Wird für Router genutzt), AP = Access Point (Wird mit AP und Handys genutzt)
   WiFi.begin(WIFI_NETWORK, WIFI_PASSWORD);
 
   unsigned long startAttemptTime = millis();
@@ -794,9 +794,9 @@ void driveCursorPosition()
 
 /**
  * Funktion zum Hochladen der X und Y Koordinaten der Karte auf ThingSpeak.
- * Es werden die umgewandelten Korrdinaten in jeweils zwei Strings
- * augeteilt, da ThingSpeak nur eine Länge von max. 255 Zeichen erlaubt.
- * Am Ende werden die Daten ueber die ersrten vier Felder hochgeladen.
+ * Es werden die umgewandelten Koordinaten in jeweils zwei Strings
+ * augeteillt, da ThingSpeak nur eine Länge von max. 255 Zeichen erlaubt.
+ * Am Ende werden die Daten ueber die ersten vier Felder hochgeladen.
  */
 void uploadMap5()
 {
@@ -829,7 +829,10 @@ void uploadMap5()
 
 /**
  * @brief
- *
+ *Funktion zum Hinzufügen der ausgefahrenen Distanz zu den Daten erstellt.
+ *Die Daten bei der X-Achse werden ins Format {500|362;785;3215;315;……} ausgebildet, 
+ *wobei der Wert vor dem Zeichen | die Distanz ist und die Werte nach dem gleichen Zeichen 
+ *sind die Werte vom Sensor mit einem Semikolon ; für trennen der Werten auseinander.
  * @param isFirst
  * @param distance
  */
@@ -865,7 +868,12 @@ void buildData(bool isFirst, int distance = 500)
 
 /**
  * @brief
- *
+ * Funktion zum Hochladen der X und Y Koordinaten der Karte auf ThingSpeak.
+ * Es werden die umgewandelten Koordinaten in jeweils Vier Strings
+ * augeteillt, da ThingSpeak nur eine Länge von max. 255 Zeichen erlaubt.
+ * Am Ende werden die Daten ueber die ersten Acht Felder hochgeladen .
+ * (Feld 1&2 für erste X Werte von der ersten Messung, 3&4 für zweite X Werte von der 2ten Messung).
+ * (Feld 5&6 für erste Y Werte von der ersten Messung, 7&8 für zweite Y Werte von der 2ten Messung).
  */
 void uploadMap()
 {
@@ -1053,7 +1061,6 @@ void loop()
       convertMeasuermentX5();
       convertMeasurementY5();
       mapDrawing();
-
 
       buildData(false);
       uploadMap();
