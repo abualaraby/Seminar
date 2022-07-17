@@ -1,14 +1,14 @@
 #include <Arduino.h>
 #include <Arduino.h>
-#include "WiFi.h"
-#include <TFT_eSPI.h>
+#include "WiFi.h"       // Für Wlan-Verbindung
+#include <TFT_eSPI.h>   // Für den ESP32 und das Bildschirm
 #include <SPI.h>
 #include <Wire.h>
-#include "VL53L1X.h"
+#include "VL53L1X.h"    // Für die Sensoren
 #include "secrets.h"
 #include "splash.h"
 #include "Button2.h"
-#include "ThingSpeak.h"
+#include "ThingSpeak.h" // Für die Verbindung mit ThingSpeak
 
 #define CHANNEL_ID 1713470                 // Chris: 1759092 // Ahmed:1713470                 // Channel ID on Thingspeak
 #define CHANNEL_API_KEY "K7G57B13MZEUEGW7" // Chris: KBZPVDC83RELSMFS // Ahmed: "K7G57B13MZEUEGW7" // API Read Key from Thingspeak
@@ -44,8 +44,8 @@ float yValues5[72];
 float xValues15[24];
 float yValues15[24];
 
-String Xcoords[] = {"", "", "", ""};
-String Ycoords[] = {"", "", "", ""};
+String Xcoords[] = {"", "", "", ""}; // Variable zum Speichern Die X-Koordinate in einem Stringkette
+String Ycoords[] = {"", "", "", ""}; // Variable zum Speichern Die Y-Koordinate in einem Stringkette
 
 float xDrive = 0;
 float yDrive = 0;
@@ -64,9 +64,9 @@ uint8_t cursorY = 140;
 bool mapIsOpen = false;
 
 // Wifi Konfiguration
-#define WIFI_NETWORK "Chris1"               //"Drei"        // WIFI Name
-#define WIFI_PASSWORD "tqor8485"                      //"Howyoudoin" // WIFI Password
-#define WIFI_TIMEOUT 10000         // 20000       // in milliseconds
+#define WIFI_NETWORK "Chris1"    //"Drei"        // WIFI Name
+#define WIFI_PASSWORD "tqor8485" //"Howyoudoin" // WIFI Password
+#define WIFI_TIMEOUT 10000       // 20000       // in milliseconds
 
 #define BUTTON_1 0
 #define BUTTON_2 35
@@ -166,7 +166,7 @@ void connectToWiFi() // Function to connect to wifi
 {
   tft.println("Connecting to WiFi");
   Serial.print("Connecting to WiFi");
-  WiFi.mode(WIFI_STA);
+  WiFi.mode(WIFI_STA); // STA = Station (Wird für Router genutzt), AP = Access Point (Wird mit AP und Handys genutzt)
   WiFi.begin(WIFI_NETWORK, WIFI_PASSWORD);
 
   unsigned long startAttemptTime = millis();
@@ -440,14 +440,12 @@ void soloSensorOutput()
 // Funktionen zum Senden von Befehlen
 // '10' wird nicht richtig übertragen, weil der Wert dann über12000 ist/ Empfangen => keine Aktion
 
-
 void Robotturn90()
 {
   Wire.beginTransmission(Roboter_ID);
   Wire.write(2);
   Wire.endTransmission();
 }
-
 
 void Robotturn5()
 {
@@ -464,7 +462,6 @@ void RobotForward()
   Wire.write(5);
   Wire.endTransmission();
 }
-
 
 void turnLeft()
 {
@@ -494,13 +491,15 @@ void Robotdirve10()
   Wire.endTransmission();
 }
 
-void Robotdrive50(){
+void Robotdrive50()
+{
   Wire.beginTransmission(Roboter_ID);
   Wire.write(2);
   Wire.endTransmission();
 }
 
-void Robotdrive100(){
+void Robotdrive100()
+{
   Wire.beginTransmission(Roboter_ID);
   Wire.write(3);
   Wire.endTransmission();
@@ -574,7 +573,7 @@ void measurement15()
     measurementvalue15[position] = sensorRead();
     Serial.println(measurementvalue15[position]);
     delay(100);
-    //Robotturn15(); // Roboterbewegung der Zahlenwert gibt die Gradzahl an.
+    // Robotturn15(); // Roboterbewegung der Zahlenwert gibt die Gradzahl an.
 
     delay(100);
     if (position < 15)
@@ -619,10 +618,10 @@ void measurement5()
 
   for (position = 0; position < 72; position++)
   { // Bei 5° Schritten position <72, bei 15°Schritten position<24
-    //delay(50);
+    // delay(50);
     measurementvalue5[position] = sensor3Read();
     Serial.println(measurementvalue5[position]);
-    //delay(50);
+    // delay(50);
     Robotturn5(); // Roboterbewegung der Zahlenwert gibt die Gradzahl an.
   }
 
@@ -639,7 +638,7 @@ void measurement5()
 // Umrechnen der Werte in X Koordinaten (5° Schritte)
 void convertMeasuermentX5()
 {
-  
+
   // tft.setCursor(0, 0);
   // tft.setTextColor(TFT_BROWN);
   // tft.print("xWerte");
@@ -681,20 +680,20 @@ void mapDrawing()
     roundValueX = xValues5[i] / 10;
     roundValueY = yValues5[i] / 10;
 
-    tft.drawPixel(xPosition - (roundValueY), yPosition- (roundValueX), TFT_WHITE);
+    tft.drawPixel(xPosition - (roundValueY), yPosition - (roundValueX), TFT_WHITE);
   }
-  /* Zum einzegen der Karte in unterschiedlichen Farben um  die Seiten zu erkennen 
+  /* Zum einzegen der Karte in unterschiedlichen Farben um  die Seiten zu erkennen
   tft.drawPixel(65 - (xValues5[0] / 10), 139 - (yValues5[0] / 10), TFT_RED);
   tft.drawPixel(65 - (xValues5[17] / 10), 139 - (yValues5[17] / 10), TFT_BLUE);
   tft.drawPixel(65 - (xValues5[35] / 10), 139 - (yValues5[35] / 10), TFT_BROWN);
   tft.drawPixel(65 - (xValues5[53] / 10), 139 - (yValues5[53] / 10), TFT_GREEN);
   */
- /*
- tft.drawCircle(65 - (xValues5[0] / 10), 139 - (yValues5[0] / 10),1, TFT_RED);
- tft.drawCircle(65-(xValues5[17] / 10), 139 - (yValues5[17] / 10),1, TFT_VIOLET);
- tft.drawCircle(65 - (xValues5[35] / 10), 139 - (yValues5[35] / 10),1, TFT_BROWN);
- tft.drawCircle(65-(xValues5[53] / 10), 139 - (yValues5[53] / 10),1, TFT_GREEN);
- */
+  /*
+  tft.drawCircle(65 - (xValues5[0] / 10), 139 - (yValues5[0] / 10),1, TFT_RED);
+  tft.drawCircle(65-(xValues5[17] / 10), 139 - (yValues5[17] / 10),1, TFT_VIOLET);
+  tft.drawCircle(65 - (xValues5[35] / 10), 139 - (yValues5[35] / 10),1, TFT_BROWN);
+  tft.drawCircle(65-(xValues5[53] / 10), 139 - (yValues5[53] / 10),1, TFT_GREEN);
+  */
 }
 
 void mapPosition()
@@ -706,8 +705,8 @@ void mapPosition()
 
 // Nächste Messung
 
-// Funktionen zum setzen eines Cursors auf dem Bildschirm, um später den Roboter dort 
-// hin fahren zu lassen. 
+// Funktionen zum setzen eines Cursors auf dem Bildschirm, um später den Roboter dort
+// hin fahren zu lassen.
 void mapCursorMoveX()
 {
   cursorX++;
@@ -715,14 +714,13 @@ void mapCursorMoveX()
   {
     cursorX = 0;
     tft.drawPixel(cursorX, cursorY, TFT_GOLD);
-    tft.drawPixel(138,cursorY, TFT_BLACK);
-
+    tft.drawPixel(138, cursorY, TFT_BLACK);
   }
-  else{
-  tft.drawPixel(cursorX, cursorY, TFT_GOLD);
-  tft.drawPixel(cursorX - 1, cursorY, TFT_BLACK);
-  
-  } 
+  else
+  {
+    tft.drawPixel(cursorX, cursorY, TFT_GOLD);
+    tft.drawPixel(cursorX - 1, cursorY, TFT_BLACK);
+  }
 }
 void mapCursorMoveY()
 {
@@ -730,70 +728,59 @@ void mapCursorMoveY()
   if (cursorY == 20)
   {
     cursorY = 239;
-    tft.drawPixel(cursorX,cursorY,TFT_GOLD);
-    tft.drawPixel(cursorX,21,TFT_GOLD);
-
+    tft.drawPixel(cursorX, cursorY, TFT_GOLD);
+    tft.drawPixel(cursorX, 21, TFT_GOLD);
   }
-  else{
-  tft.drawPixel(cursorX, cursorY, TFT_GOLD);
-  tft.drawPixel(cursorX, cursorY + 1, TFT_BLACK);
+  else
+  {
+    tft.drawPixel(cursorX, cursorY, TFT_GOLD);
+    tft.drawPixel(cursorX, cursorY + 1, TFT_BLACK);
   }
 }
 
-void resetCursor(){
-  cursorX=xPosition;
-  cursorY=yPosition;
-
+void resetCursor()
+{
+  cursorX = xPosition;
+  cursorY = yPosition;
 }
 // Konvertierung der Cursor Position um den Roboter dort hin fahren zu lassen.
 void convertCursorPosition()
 {
   xDrive = (cursorX - xPosition) * 10;
   yDrive = (cursorY - yPosition) * -10;
-    
+
   angleDrive = atan(yDrive / xDrive) * RAD_TO_DEG;
-    
-   
-    
-    /*
-    Serial.println(xResult);
-    Serial.printf("y Value: ");
-    Serial.println(yResult);
-    Serial.printf("Angle: ");
-    Serial.println(angleResult);
 
-    displayReset();
-    tft.setCursor(0,0);
-    tft.setTextColor(TFT_WHITE);
-    tft.println("Fahrziel");
-    */
+  /*
+  Serial.println(xResult);
+  Serial.printf("y Value: ");
+  Serial.println(yResult);
+  Serial.printf("Angle: ");
+  Serial.println(angleResult);
 
-    displayReset();
-    tft.setCursor(0,10);
-    tft.setTextColor(TFT_GREEN);
-    tft.printf("x Wert: %f ",xDrive);
-    
+  displayReset();
+  tft.setCursor(0,0);
+  tft.setTextColor(TFT_WHITE);
+  tft.println("Fahrziel");
+  */
 
-    tft.setCursor(0,20);
-    tft.printf("y Wert: %f",yDrive);
-    
+  displayReset();
+  tft.setCursor(0, 10);
+  tft.setTextColor(TFT_GREEN);
+  tft.printf("x Wert: %f ", xDrive);
 
-    tft.setCursor(0,30);
-    tft.printf("Winkel: %f ",angleDrive);
-    
+  tft.setCursor(0, 20);
+  tft.printf("y Wert: %f", yDrive);
 
+  tft.setCursor(0, 30);
+  tft.printf("Winkel: %f ", angleDrive);
 }
-
-
-
-
-
 
 /**
  * Funktion zum Hochladen der X und Y Koordinaten der Karte auf ThingSpeak.
- * Es werden die umgewandelten Korrdinaten in jeweils zwei Strings
- * augeteilt, da ThingSpeak nur eine Länge von max. 255 Zeichen erlaubt.
- * Am Ende werden die Daten ueber die ersrten vier Felder hochgeladen.
+ * Es werden die umgewandelten Koordinaten in jeweils zwei Strings
+ * augeteillt, da ThingSpeak nur eine Länge von max. 255 Zeichen erlaubt.
+ * Am Ende werden die Daten ueber die ersten vier Felder hochgeladen.
  */
 void uploadMap5()
 {
@@ -826,7 +813,10 @@ void uploadMap5()
 
 /**
  * @brief
- *
+ *Funktion zum Hinzufügen der ausgefahrenen Distanz zu den Daten erstellt.
+ *Die Daten bei der X-Achse werden ins Format {500|362;785;3215;315;……} ausgebildet, 
+ *wobei der Wert vor dem Zeichen | die Distanz ist und die Werte nach dem gleichen Zeichen 
+ *sind die Werte vom Sensor mit einem Semikolon ; für trennen der Werten auseinander.
  * @param isFirst
  * @param distance
  */
@@ -861,8 +851,13 @@ void buildData(bool isFirst, int distance = 500)
 }
 
 /**
- * @brief 
- * 
+ * @brief
+ * Funktion zum Hochladen der X und Y Koordinaten der Karte auf ThingSpeak.
+ * Es werden die umgewandelten Koordinaten in jeweils Vier Strings
+ * augeteillt, da ThingSpeak nur eine Länge von max. 255 Zeichen erlaubt.
+ * Am Ende werden die Daten ueber die ersten Acht Felder hochgeladen .
+ * (Feld 1&2 für erste X Werte von der ersten Messung, 3&4 für zweite X Werte von der 2ten Messung).
+ * (Feld 5&6 für erste Y Werte von der ersten Messung, 7&8 für zweite Y Werte von der 2ten Messung).
  */
 void uploadMap()
 {
@@ -1034,12 +1029,10 @@ void loop()
       tft.print("Counts: ");
       tft.print(Buttoncount1);
 
-
       measurement5();
       convertMeasuermentX5();
       convertMeasurementY5();
       mapDrawing();
-
 
       buildData(true, 500);
       delay(2000);
@@ -1051,7 +1044,6 @@ void loop()
       convertMeasurementY5();
       mapDrawing();
 
-
       buildData(false);
       uploadMap();
 
@@ -1059,30 +1051,29 @@ void loop()
       tft.setTextColor(TFT_GREEN);
       tft.print("done");
       Serial.println("Done uploading map");
-      
+
       mapIsOpen = true;
     }
   }
   if (doubleclick2 == true)
   {
     doubleclick2 = false;
-   // if (mapIsOpen == true)
-   // {
-   //   mapCursorMoveY();
-   // }
-   // else
-   // {
-      displayReset();
-      //convertCursorPosition();
-      delay(2000);
-      Robotdirve10();
-      
-      tft.setCursor(0,0);
-      tft.setTextColor(TFT_GREEN);
-      tft.println("Robot is Driving");
+    // if (mapIsOpen == true)
+    // {
+    //   mapCursorMoveY();
+    // }
+    // else
+    // {
+    displayReset();
+    // convertCursorPosition();
+    delay(2000);
+    Robotdirve10();
 
-      
-      mapIsOpen = false;
+    tft.setCursor(0, 0);
+    tft.setTextColor(TFT_GREEN);
+    tft.println("Robot is Driving");
+
+    mapIsOpen = false;
     //}
   }
   if (longclick1 == true)
@@ -1093,8 +1084,8 @@ void loop()
   }
   if (longclick2 == true)
   {
-    //convertCursorPosition();
+    // convertCursorPosition();
     longclick2 = false;
-    //mapIsOpen = false;
+    // mapIsOpen = false;
   }
 }
