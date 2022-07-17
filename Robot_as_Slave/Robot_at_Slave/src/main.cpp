@@ -346,30 +346,42 @@ void receiveEvent(int howMany)
 
     if (rxChar == 1)
     {
-      DriveTest=1;
+      driveturn5();
     }
     if (rxChar == 2)
     {
-      DriveTest=2;
+      //1cm Fahren
+      DriveTest=1;
     }
     if (rxChar == 3)
     {
-      DriveTest=3;
+      //2cm Fahren
+      DriveTest=2;
     }
     if (rxChar == 4)
     {
-      driveturn5();
+      //5cm Fahren
+      DriveTest=3;
     }
    
+    if (rxChar == 5)
+    {
+      //10cm Fahren 
+      DriveTest=4;
+    }
     if (rxChar == 6)
     {
-      driveTurnleft();
+      //20cm Fahren
+      DriveTest = 5;
     }
-    if (rxChar == 7)
-    {
-      DriveTest = 0;
+    if(rxChar==7){
+      //50cm Fahren
+      DriveTest=6;
     }
-    
+    if(rxChar==8){
+      //100cm Fahren
+      DriveTest=7;
+    }
     // rxChar=0;
     /*
     else{
@@ -424,40 +436,51 @@ void setup()
 
 void loop()
 {
-  // Vorwärts fahren über Encoder
-  if (DriveTest == 1)
+  if(DriveTest==2){
+    //1cm Fahren
+    checkEncoders(3);
+    DriveTest=0;
+  }
+  if(DriveTest==3){
+    //2cm Fahren
+    checkEncoders(0.5);
+    DriveTest=0;
+
+  }
+  if(DriveTest==4){
+    //5cm Fahren
+    checkEncoders(5);
+    DriveTest=0;
+  }
+
+  if (DriveTest == 5)
   {
-    //Entfernungen 
-    //10cm=   9
-    //50cm = 53
+    //10 cm Fahren
+    
     checkEncoders(9);
 
     DriveTest = 0;
     // driveForwar(300); // Hiermit fährt der Roboter nach vorne in mm
   }
-
-  if(DriveTest==2){
-    checkEncoders(53);
+  if(DriveTest==6){
+    //20cm Fahren
+    checkEncoders(18);
     DriveTest=0;
 
   }
+  if(DriveTest==7){
+    //50cm Fahren
+    checkEncoders(53);
+    DriveTest=0;
+  }
 
-  if(DriveTest==3){
+  if(DriveTest==8){
     //Entfernung =100cm 
     checkEncoders(100);
     DriveTest=0;
   }
 
-  if(DriveTest==4){
-
-  }
-
-  if(DriveTest==5){
-
-  }
-  if(DriveTest==6){
-    
-  }
+  
 
   // Forwärtsfahren über Sensoren (War nicht sehr gut)
   /*

@@ -1,10 +1,10 @@
 #include <Arduino.h>
 #include <Arduino.h>
-#include "WiFi.h"       // Für Wlan-Verbindung
-#include <TFT_eSPI.h>   // Für den ESP32 und das Bildschirm
+#include "WiFi.h"     // Für Wlan-Verbindung
+#include <TFT_eSPI.h> // Für den ESP32 und das Bildschirm
 #include <SPI.h>
 #include <Wire.h>
-#include "VL53L1X.h"    // Für die Sensoren
+#include "VL53L1X.h" // Für die Sensoren
 #include "secrets.h"
 #include "splash.h"
 #include "Button2.h"
@@ -39,8 +39,8 @@ int safePosition = 0;
 float measurementvalue15[24]; // Ausgabe der Drehmessung
 float measurementvalue5[72];
 
-float xValues5[72]; //Variable zum speichern der Messwerte x
-float yValues5[72]; //Variable zum speichern der Messwerte y
+float xValues5[72]; // Variable zum speichern der Messwerte x
+float yValues5[72]; // Variable zum speichern der Messwerte y
 float xValues15[24];
 float yValues15[24];
 
@@ -51,10 +51,10 @@ float xDrive = 0;
 float yDrive = 0;
 float angleDrive = 0;
 uint8_t angleCount = 0;
-uint8_t realAngleDrive=0;
+uint8_t realAngleDrive = 0;
 float polarDrive = 0;
-uint16_t realpolarDrive=0;
-
+uint16_t realpolarDrive = 0;
+float safeRealpolarDrive=0;
 
 float longSideX = 0;
 float longSideY = 0;
@@ -443,23 +443,25 @@ void soloSensorOutput()
 
 // Funktionen zum Senden von Befehlen
 // '10' wird nicht richtig übertragen, weil der Wert dann über12000 ist/ Empfangen => keine Aktion
-
+/*
 void Robotturn90()
 {
   Wire.beginTransmission(Roboter_ID);
   Wire.write(2);
   Wire.endTransmission();
 }
+*/
 
 void Robotturn5()
 {
   Wire.beginTransmission(Roboter_ID);
-  Wire.write(4);
+  Wire.write(1);
   Wire.endTransmission();
+  delay(100);
 }
 
 // Roboter vor Fahren lassen
-
+/*
 void RobotForward()
 {
   Wire.beginTransmission(Roboter_ID);
@@ -479,6 +481,7 @@ void RobotStop()
   Wire.write(7);
   Wire.endTransmission();
 }
+
 // Variable des Sensors 3 an Roboter senden (die zwei, weil von 0 aus gezählt wird)
 void Robotsend()
 {
@@ -486,27 +489,60 @@ void Robotsend()
   Wire.beginTransmission(Roboter_ID);
   Wire.write(sprintf(value, "%04d", sensor[2].ranging_data.range_mm));
   Wire.endTransmission();
-}
 
-void Robotdirve10()
+}
+*/
+void Robotdrive1()
 {
   Wire.beginTransmission(Roboter_ID);
-  Wire.write(1);
+  Wire.write(2);
   Wire.endTransmission();
+  delay(100);
+}
+
+void Robotdrive2()
+{
+  Wire.beginTransmission(Roboter_ID);
+  Wire.write(3);
+  Wire.endTransmission();
+  delay(200);
+}
+void Robotdrive5()
+{
+  Wire.beginTransmission(Roboter_ID);
+  Wire.write(4);
+  Wire.endTransmission();
+  delay(500);
+}
+void Robotdrive10()
+{
+  Wire.beginTransmission(Roboter_ID);
+  Wire.write(5);
+  Wire.endTransmission();
+  delay(1000);
+}
+void Robotdrive20()
+{
+  Wire.beginTransmission(Roboter_ID);
+  Wire.write(6);
+  Wire.endTransmission();
+  delay(2000);
 }
 
 void Robotdrive50()
 {
   Wire.beginTransmission(Roboter_ID);
-  Wire.write(2);
+  Wire.write(7);
   Wire.endTransmission();
+  delay(5000);
 }
 
 void Robotdrive100()
 {
   Wire.beginTransmission(Roboter_ID);
-  Wire.write(3);
+  Wire.write(8);
   Wire.endTransmission();
+  delay(10000);
 }
 
 // Funktion zum Aufsetzen eines Auswahlfeldes
@@ -667,14 +703,14 @@ void convertMeasurementY5()
 // Funktion zum zurücksetzen des Cursors
 void resetCursor()
 {
-  cursorX = yPosition; // Verschiebung nach unten zum Nullpunkt der x-Achse 
+  cursorX = yPosition; // Verschiebung nach unten zum Nullpunkt der x-Achse
   cursorY = xPosition; // Verschiebung nach rechts zum Nullpunkt der y-Achse
-  xDrive=0;
-  yDrive=0;
-  angleDrive=0;
-  angleCount=0;
-  realAngleDrive=0;
-  polarDrive=0;
+  xDrive = 0;
+  yDrive = 0;
+  angleDrive = 0;
+  angleCount = 0;
+  realAngleDrive = 0;
+  polarDrive = 0;
 }
 // Zeichnen einer Karte aufgrund von Messdaten (1 Messung)
 void mapDrawing()
@@ -688,7 +724,7 @@ void mapDrawing()
 
   int roundValueX = 0;
   int roundValueY = 0;
-  tft.drawCircle(cursorX, cursorY,3, TFT_RED);
+  tft.drawCircle(cursorX, cursorY, 3, TFT_RED);
 
   for (uint8_t i = 0 + (measurementCount * 72); i < 72 + (measurementCount * 72); i++)
   {
@@ -742,7 +778,6 @@ void mapCursorMoveY()
   }
 }
 
-
 // Konvertierung der Cursor Position um den Roboter dort hin fahren zu lassen.
 void convertCursorPosition()
 {
@@ -750,12 +785,12 @@ void convertCursorPosition()
   yDrive = (cursorY - xPosition) * -10;
 
   angleDrive = atan(yDrive / xDrive) * RAD_TO_DEG;
-  angleCount=angleDrive/5;
-  realAngleDrive=5*angleCount;
-
+  angleCount = angleDrive / 5;
+  realAngleDrive = 5 * angleCount;
 
   polarDrive = sqrt(xDrive * xDrive + yDrive * yDrive);
-  realpolarDrive=polarDrive/10;
+  realpolarDrive = polarDrive / 10;
+  safeRealpolarDrive=realpolarDrive;
 
   displayReset();
   tft.setCursor(0, 10);
@@ -767,29 +802,107 @@ void convertCursorPosition()
 
   tft.setCursor(0, 30);
   tft.printf("Winkel: %f ", angleDrive);
-  
-  tft.setCursor(0,40);
+
+  tft.setCursor(0, 40);
   tft.printf("Umdrehungssprünge= %d", angleCount);
 
-  tft.setCursor(0,50);
-  tft.printf("Wahrer Fahrwinkel= %d",realAngleDrive);
+  tft.setCursor(0, 50);
+  tft.printf("Wahrer Fahrwinkel= %d", realAngleDrive);
 
   tft.setCursor(0, 70);
   tft.printf("Polarentfernung in");
-  tft.setCursor(0,80);
-  tft.printf("mm: %f",polarDrive);
+  tft.setCursor(0, 80);
+  tft.printf("mm: %f", polarDrive);
 
-  tft.setCursor(0,100);
+  tft.setCursor(0, 100);
   tft.printf("Wahre Farhentfernung ");
-  tft.setCursor(0,110);
+  tft.setCursor(0, 110);
   tft.printf("in cm: %d", realpolarDrive);
 }
 
 void driveCursorPosition()
 {
-    for(int i=0;i<angleCount;i++){
 
+  uint8_t Drive100 = 0;
+  uint8_t Drive50 = 0;
+  uint8_t Drive20 = 0;
+  uint8_t Drive10 = 0;
+  uint8_t Drive5 = 0;
+  uint8_t Drive2 = 0;
+  uint8_t Drive1 = 0;
+  int moduloValue100=0;
+  int moduloValue50=0;
+  int moduloValue20=0;
+  int moduloValue10=0;
+  int moduloValue5=0;
+  int moduloValue2=0;
+  int moduloValue1=0;
+
+  for (int i = 0; i < angleCount; i++)
+  {
+    Robotturn5();
+  }
+
+  Drive100= realpolarDrive/100;
+  moduloValue100=realpolarDrive%100;
+
+  Drive50=moduloValue100/50;
+  moduloValue50=moduloValue100 % 50;
+
+  Drive20=moduloValue50/20;
+  moduloValue20=moduloValue50 % 20;
+
+  Drive10=moduloValue20 /10;
+  moduloValue10= moduloValue20 % 10;
+
+  Drive5=moduloValue10/5;
+  moduloValue5=moduloValue10 % 5;
+
+  Drive2=moduloValue5/2;
+  moduloValue2=moduloValue5 % 2;
+
+  Drive1=moduloValue2;
+
+  if(Drive100>=1){
+    for(int i=0;i<=Drive100;i++){
+      Robotdrive100();
     }
+  }
+  if(Drive50>=1){
+    for(int i=0;i<=Drive50;i++){
+      Robotdrive50();
+    }
+  }
+  if(Drive20>=1){
+    for(int i=0;i<=Drive20;i++){
+      Robotdrive20();
+    }
+  }
+  if(Drive10>=1){
+    for(int i=0;i<=Drive10;i++){
+      Robotdrive10();
+    }
+  }
+  if(Drive5>=1){
+    for(int i=0;i<=Drive5;i++){
+      Robotdrive5();
+    }
+  }
+  if(Drive2>=1){
+    for(int i=0;i<=Drive2;i++){
+      Robotdrive2();
+    }
+  }
+  if(Drive1>=1){
+    for(int i=0;i<=Drive1;i++){
+      Robotdrive1();
+    }
+  }
+
+
+
+
+
 }
 
 /**
@@ -830,8 +943,8 @@ void uploadMap5()
 /**
  * @brief
  *Funktion zum Hinzufügen der ausgefahrenen Distanz zu den Daten erstellt.
- *Die Daten bei der X-Achse werden ins Format {500|362;785;3215;315;……} ausgebildet, 
- *wobei der Wert vor dem Zeichen | die Distanz ist und die Werte nach dem gleichen Zeichen 
+ *Die Daten bei der X-Achse werden ins Format {500|362;785;3215;315;……} ausgebildet,
+ *wobei der Wert vor dem Zeichen | die Distanz ist und die Werte nach dem gleichen Zeichen
  *sind die Werte vom Sensor mit einem Semikolon ; für trennen der Werten auseinander.
  * @param isFirst
  * @param distance
@@ -1084,8 +1197,8 @@ void loop()
     // {
     displayReset();
     // convertCursorPosition();
-    delay(2000);
-    Robotdirve10();
+    delay(50);
+    Robotdrive2();
 
     tft.setCursor(0, 0);
     tft.setTextColor(TFT_GREEN);
@@ -1103,8 +1216,9 @@ void loop()
   if (longclick2 == true)
   {
     convertCursorPosition();
+    driveCursorPosition();
     longclick2 = false;
-    doubleclick2=false;
+    doubleclick2 = false;
     // mapIsOpen = false;
   }
 }
