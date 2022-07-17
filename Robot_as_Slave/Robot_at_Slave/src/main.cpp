@@ -425,7 +425,7 @@ void setup()
 void loop()
 {
   // Vorwärts fahren über Encoder
-  while (DriveTest == 1)
+  if (DriveTest == 1)
   {
     //Entfernungen 
     //10cm=   9
@@ -436,15 +436,27 @@ void loop()
     // driveForwar(300); // Hiermit fährt der Roboter nach vorne in mm
   }
 
-  while(DriveTest==2){
+  if(DriveTest==2){
     checkEncoders(53);
     DriveTest=0;
 
   }
 
-  while(DriveTest==3){
+  if(DriveTest==3){
+    //Entfernung =100cm 
     checkEncoders(100);
     DriveTest=0;
+  }
+
+  if(DriveTest==4){
+
+  }
+
+  if(DriveTest==5){
+
+  }
+  if(DriveTest==6){
+    
   }
 
   // Forwärtsfahren über Sensoren (War nicht sehr gut)
