@@ -460,38 +460,7 @@ void Robotturn5()
   delay(100);
 }
 
-// Roboter vor Fahren lassen
-/*
-void RobotForward()
-{
-  Wire.beginTransmission(Roboter_ID);
-  Wire.write(5);
-  Wire.endTransmission();
-}
 
-void turnLeft()
-{
-  Wire.beginTransmission(Roboter_ID);
-  Wire.write(6);
-  Wire.endTransmission();
-}
-void RobotStop()
-{
-  Wire.beginTransmission(Roboter_ID);
-  Wire.write(7);
-  Wire.endTransmission();
-}
-
-// Variable des Sensors 3 an Roboter senden (die zwei, weil von 0 aus gezählt wird)
-void Robotsend()
-{
-  char value[5];
-  Wire.beginTransmission(Roboter_ID);
-  Wire.write(sprintf(value, "%04d", sensor[2].ranging_data.range_mm));
-  Wire.endTransmission();
-
-}
-*/
 void Robotdrive1()
 {
   Wire.beginTransmission(Roboter_ID);
@@ -512,21 +481,21 @@ void Robotdrive5()
   Wire.beginTransmission(Roboter_ID);
   Wire.write(4);
   Wire.endTransmission();
-  delay(1500);
+  delay(2000);
 }
 void Robotdrive10()
 {
   Wire.beginTransmission(Roboter_ID);
   Wire.write(5);
   Wire.endTransmission();
-  delay(2000);
+  delay(4000);
 }
 void Robotdrive20()
 {
   Wire.beginTransmission(Roboter_ID);
   Wire.write(6);
   Wire.endTransmission();
-  delay(4000);
+  delay(8000);
 }
 
 void Robotdrive50()
@@ -726,7 +695,7 @@ void mapDrawing()
   int roundValueY = 0;
   tft.drawCircle(65, 140, 3, TFT_RED);
 
-  for (uint8_t i = 0 + (measurementCount * 72); i < 72 + (measurementCount * 72); i++)
+  for (uint8_t i = 0 ; i < 72 ; i++)
   {
     roundValueX = xValues5[i] / 10;
     roundValueY = yValues5[i] / 10;
@@ -758,8 +727,8 @@ void mapCursorMoveX()
   }
   else
   {
-    tft.drawPixel(cursorX, cursorY, TFT_GOLD);
-    tft.drawPixel(cursorX - 1, cursorY, TFT_BLACK);
+    tft.drawPixel(cursorX+1, cursorY, TFT_GOLD);
+    tft.drawPixel(cursorX  -2, cursorY, TFT_BLACK);
   }
 }
 void mapCursorMoveY()
@@ -773,15 +742,15 @@ void mapCursorMoveY()
   }
   else
   {
-    tft.drawPixel(cursorX, cursorY, TFT_GOLD);
-    tft.drawPixel(cursorX, cursorY + 1, TFT_BLACK);
+    tft.drawPixel(cursorX, cursorY-1, TFT_GOLD);
+    tft.drawPixel(cursorX, cursorY +2, TFT_BLACK);
   }
 }
 
 // Konvertierung der Cursor Position um den Roboter dort hin fahren zu lassen.
 void convertCursorPosition()
 {
-  xDrive = (cursorY - 140) * 10;    //10
+  xDrive = (cursorY - 140) * -10;    //10
   yDrive = (cursorX - 65) * -10;    //-10
 
   angleDrive = atan(-yDrive / xDrive) * RAD_TO_DEG;
@@ -811,7 +780,7 @@ void convertCursorPosition()
   tft.printf("x Wert: %f ", yDrive);
 
   tft.setCursor(0, 20);
-  tft.printf("y Wert: %f", xDrive);
+  tft.printf("y Wert: %f", -xDrive);
 
   tft.setCursor(0, 30);
   tft.printf("Winkel: %f ", angleDrive);
@@ -911,9 +880,11 @@ void driveCursorPosition()
       Robotdrive1();
     }
   }
-
-
-
+/*
+  for(int i=0;i<72-angleCount;i++){
+    Robotturn5();
+  }
+*/
 
 
 }
@@ -1232,14 +1203,18 @@ void loop()
   if (longclick2 == true)
   {
     convertCursorPosition();
+    buildData(true,realpolarDrive,realAngleDrive);
+    
     delay(3000);
     driveCursorPosition();
 
-    delay(10000);
+    delay(5000);
     measurement5();
     convertMeasuermentX5();
     convertMeasurementY5();
     mapDrawing();
+    buildData(false);
+    uploadMap();
     longclick2 = false;
     doubleclick2 = false;
     // mapIsOpen = false;

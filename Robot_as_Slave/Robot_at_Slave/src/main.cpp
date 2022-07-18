@@ -148,22 +148,13 @@ void driveturn5()
   uint16_t encCountsLeft = 0, encCountsRight = 0;
 
   char buf[4];
-
   // Anfangsreset
   encCountsLeft = encoders.getCountsAndResetLeft();
   encCountsRight = encoders.getCountsAndResetRight();
   encCountsLeft = 0;
   encCountsRight = 0;
 
-  // encCountsLeft und encCountsRight wert abändern für andere Grad Zahl
-  // encCountsLeft >-240 || encCountsRight <240 => 90°
-  // encCountsLeft >-40  || encCountsRight <40  => 20°
-  // while (encCountsLeft<1000||encCountsRight>-1000)
-
-
   while (((encCountsRight - encCountsLeft) / 2) < 8.85)
-
-
   {
 
     driveTurnleft();
@@ -180,16 +171,6 @@ void driveturn5()
     }
 
     encCountsRight += encoders.getCountsAndResetRight();
-    /*
-    if (encCountsRight < 0)
-    {
-      encCountsRight += 10000;
-    }
-    if (encCountsRight > 9999)
-    {
-      encCountsRight -= 10000;
-    }
-    */
     if (encoders.checkErrorLeft() == true || encoders.checkErrorRight() == true)
     {
       driveStop();
