@@ -68,8 +68,8 @@ uint8_t cursorY = 140;
 bool mapIsOpen = false;
 
 // Wifi Konfiguration
-#define WIFI_NETWORK "Chris1"    //"Drei"        // WIFI Name
-#define WIFI_PASSWORD "tqor8485" //"Howyoudoin" // WIFI Password
+#define WIFI_NETWORK "Drei"    //"Drei"        // WIFI Name
+#define WIFI_PASSWORD "Howyoudoin" //"Howyoudoin" // WIFI Password
 #define WIFI_TIMEOUT 10000       // 20000       // in milliseconds
 
 #define BUTTON_1 0
@@ -931,18 +931,17 @@ void uploadMap5()
  *wobei der Wert vor dem Zeichen | die Distanz ist und die Werte nach dem gleichen Zeichen
  *sind die Werte vom Sensor mit einem Semikolon ; für trennen der Werten auseinander.
  * @param isFirst
- * @param distance
  */
 
-void buildData(bool isFirst, int distance = realpolarDrive, int angle = realAngleDrive)
+void buildData(bool isFirst)
 
 {
   int offset = 2;
   if (isFirst)
   {
-    Xcoords[0] += distance;
+    Xcoords[0] += realpolarDrive;
     Xcoords[0] += "|";
-    Ycoords[0] += angle;
+    Ycoords[0] += realAngleDrive;
     Ycoords[0] += "|";
     offset = 0;
   }
@@ -1203,7 +1202,7 @@ void loop()
   if (longclick2 == true)
   {
     convertCursorPosition();
-    buildData(true,realpolarDrive,realAngleDrive);
+    buildData(true);
     
     delay(3000);
     driveCursorPosition();
