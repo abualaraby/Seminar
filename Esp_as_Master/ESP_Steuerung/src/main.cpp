@@ -51,7 +51,7 @@ float xDrive = 0;
 float yDrive = 0;
 float angleDrive = 0;
 uint8_t angleCount = 0;
-uint8_t realAngleDrive = 0;
+int realAngleDrive = 0;
 float polarDrive = 0;
 uint16_t realpolarDrive = 0;
 float safeRealpolarDrive=0;
@@ -497,7 +497,7 @@ void Robotdrive1()
   Wire.beginTransmission(Roboter_ID);
   Wire.write(2);
   Wire.endTransmission();
-  delay(100);
+  delay(500);
 }
 
 void Robotdrive2()
@@ -505,28 +505,28 @@ void Robotdrive2()
   Wire.beginTransmission(Roboter_ID);
   Wire.write(3);
   Wire.endTransmission();
-  delay(200);
+  delay(1000);
 }
 void Robotdrive5()
 {
   Wire.beginTransmission(Roboter_ID);
   Wire.write(4);
   Wire.endTransmission();
-  delay(500);
+  delay(1500);
 }
 void Robotdrive10()
 {
   Wire.beginTransmission(Roboter_ID);
   Wire.write(5);
   Wire.endTransmission();
-  delay(1000);
+  delay(2000);
 }
 void Robotdrive20()
 {
   Wire.beginTransmission(Roboter_ID);
   Wire.write(6);
   Wire.endTransmission();
-  delay(2000);
+  delay(4000);
 }
 
 void Robotdrive50()
@@ -534,7 +534,7 @@ void Robotdrive50()
   Wire.beginTransmission(Roboter_ID);
   Wire.write(7);
   Wire.endTransmission();
-  delay(5000);
+  delay(10000);
 }
 
 void Robotdrive100()
@@ -542,7 +542,7 @@ void Robotdrive100()
   Wire.beginTransmission(Roboter_ID);
   Wire.write(8);
   Wire.endTransmission();
-  delay(10000);
+  delay(100000);
 }
 
 // Funktion zum Aufsetzen eines Auswahlfeldes
@@ -683,7 +683,7 @@ void convertMeasuermentX5()
   // tft.setTextColor(TFT_BROWN);
   // tft.print("xWerte");
 
-  for (position = measurementCount * 72; position < 72 + (measurementCount * 72); position++)
+  for (position = 0; position < 72; position++)
   {
     xValues5[position] = (cosf(5 * position * DEG_TO_RAD)) * measurementvalue5[position];
   }
@@ -695,7 +695,7 @@ void convertMeasuermentX5()
 void convertMeasurementY5()
 {
 
-  for (position = measurementCount * 72; position < 72 + (measurementCount * 72); position++)
+  for (position =0; position < 72 ; position++)
   {
     yValues5[position] = sinf(5 * position * DEG_TO_RAD) * measurementvalue5[position];
   }
@@ -703,8 +703,8 @@ void convertMeasurementY5()
 // Funktion zum zurücksetzen des Cursors
 void resetCursor()
 {
-  cursorX = yPosition; // Verschiebung nach unten zum Nullpunkt der x-Achse
-  cursorY = xPosition; // Verschiebung nach rechts zum Nullpunkt der y-Achse
+  cursorX = 65; // Verschiebung nach unten zum Nullpunkt der x-Achse
+  cursorY = 140; // Verschiebung nach rechts zum Nullpunkt der y-Achse
   xDrive = 0;
   yDrive = 0;
   angleDrive = 0;
@@ -724,7 +724,7 @@ void mapDrawing()
 
   int roundValueX = 0;
   int roundValueY = 0;
-  tft.drawCircle(cursorX, cursorY, 3, TFT_RED);
+  tft.drawCircle(65, 140, 3, TFT_RED);
 
   for (uint8_t i = 0 + (measurementCount * 72); i < 72 + (measurementCount * 72); i++)
   {
@@ -781,11 +781,24 @@ void mapCursorMoveY()
 // Konvertierung der Cursor Position um den Roboter dort hin fahren zu lassen.
 void convertCursorPosition()
 {
-  xDrive = (cursorX - yPosition) * 10;
-  yDrive = (cursorY - xPosition) * -10;
+  xDrive = (cursorY - 140) * 10;    //10
+  yDrive = (cursorX - 65) * -10;    //-10
 
-  angleDrive = atan(yDrive / xDrive) * RAD_TO_DEG;
-  angleCount = angleDrive / 5;
+  angleDrive = atan(-yDrive / xDrive) * RAD_TO_DEG;
+  
+  if(angleDrive>0){
+    angleCount=(360-angleDrive)/5;
+  }
+  
+  if(angleDrive=0){
+    angleCount=0;
+  }
+
+  if(angleDrive<0){
+    angleCount=(angleDrive)/5;
+  }
+  
+ 
   realAngleDrive = 5 * angleCount;
 
   polarDrive = sqrt(xDrive * xDrive + yDrive * yDrive);
@@ -795,10 +808,10 @@ void convertCursorPosition()
   displayReset();
   tft.setCursor(0, 10);
   tft.setTextColor(TFT_GREEN);
-  tft.printf("x Wert: %f ", xDrive);
+  tft.printf("x Wert: %f ", yDrive);
 
   tft.setCursor(0, 20);
-  tft.printf("y Wert: %f", yDrive);
+  tft.printf("y Wert: %f", xDrive);
 
   tft.setCursor(0, 30);
   tft.printf("Winkel: %f ", angleDrive);
@@ -864,12 +877,12 @@ void driveCursorPosition()
   Drive1=moduloValue2;
 
   if(Drive100>=1){
-    for(int i=0;i<=Drive100;i++){
+    for(int i=0;i<Drive100;i++){
       Robotdrive100();
     }
   }
   if(Drive50>=1){
-    for(int i=0;i<=Drive50;i++){
+    for(int i=0;i<Drive50;i++){
       Robotdrive50();
     }
   }
@@ -879,22 +892,22 @@ void driveCursorPosition()
     }
   }
   if(Drive10>=1){
-    for(int i=0;i<=Drive10;i++){
+    for(int i=0;i<Drive10;i++){
       Robotdrive10();
     }
   }
   if(Drive5>=1){
-    for(int i=0;i<=Drive5;i++){
+    for(int i=0;i<Drive5;i++){
       Robotdrive5();
     }
   }
   if(Drive2>=1){
-    for(int i=0;i<=Drive2;i++){
+    for(int i=0;i<Drive2;i++){
       Robotdrive2();
     }
   }
   if(Drive1>=1){
-    for(int i=0;i<=Drive1;i++){
+    for(int i=0;i<Drive1;i++){
       Robotdrive1();
     }
   }
@@ -1070,13 +1083,13 @@ void loop()
     // Aktion linker Knopfdurck Cursor nach unten führen nach Messung
     tft.println("Einzel Klick links = ");
 
-    tft.println("Cursor nach rechts");
+    tft.println("Cursor nach oben");
     tft.println("");
     tft.setTextColor(TFT_GREEN);
     // Aktion Recher Knopfdruck Cursor nach unten führen nach Messung
     tft.println("Einzel Klick rechts =");
     tft.println("");
-    tft.println("Cursor nach unten");
+    tft.println("Cursor nach rechts");
     tft.println("");
 
     tft.setTextColor(TFT_GOLD);
@@ -1115,10 +1128,11 @@ void loop()
     click1 = false;
     if (mapIsOpen == true)
     {
-      mapCursorMoveX();
+      mapCursorMoveY();
     }
     else
     {
+      
       tft.println("");
       tft.setTextColor(TFT_RED);
       tft.println("Error");
@@ -1130,11 +1144,11 @@ void loop()
     click2 = false;
     if (mapIsOpen == true)
     {
-      mapCursorMoveY();
+      mapCursorMoveX();
     }
     else
     {
-      ;
+     
       tft.setTextColor(TFT_RED);
       tft.println("Error");
     }
@@ -1198,7 +1212,7 @@ void loop()
     displayReset();
     // convertCursorPosition();
     delay(50);
-    Robotdrive2();
+   
 
     tft.setCursor(0, 0);
     tft.setTextColor(TFT_GREEN);
@@ -1216,7 +1230,14 @@ void loop()
   if (longclick2 == true)
   {
     convertCursorPosition();
+    delay(3000);
     driveCursorPosition();
+
+    delay(10000);
+    measurement5();
+    convertMeasuermentX5();
+    convertMeasurementY5();
+    mapDrawing();
     longclick2 = false;
     doubleclick2 = false;
     // mapIsOpen = false;

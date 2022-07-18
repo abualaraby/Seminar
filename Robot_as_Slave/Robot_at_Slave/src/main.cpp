@@ -85,7 +85,7 @@ void checkEncoders(float howFar)
         {
           if (Sr > 50 || Sl > 50)
           {
-            wheelSpeed = 75 * ((30 - Sr) / 10);
+            wheelSpeed = 75 * ((60 - Sr) / 10);
             if (wheelSpeed < 40)
             {
               wheelSpeed = 40;
@@ -436,47 +436,47 @@ void setup()
 
 void loop()
 {
-  if(DriveTest==2){
+  if(DriveTest==1){
     //1cm Fahren
-    checkEncoders(3);
-    DriveTest=0;
-  }
-  if(DriveTest==3){
-    //2cm Fahren
     checkEncoders(0.5);
     DriveTest=0;
+  }
+  if(DriveTest==2){
+    //2cm Fahren
+    checkEncoders(1.65);
+    DriveTest=0;
 
   }
-  if(DriveTest==4){
+  if(DriveTest==3){
     //5cm Fahren
-    checkEncoders(5);
+    checkEncoders(4.6);
     DriveTest=0;
   }
 
-  if (DriveTest == 5)
+  if (DriveTest == 4)
   {
     //10 cm Fahren
     
-    checkEncoders(9);
+    checkEncoders(9.7);
 
     DriveTest = 0;
     // driveForwar(300); // Hiermit fährt der Roboter nach vorne in mm
   }
-  if(DriveTest==6){
+  if(DriveTest==5){
     //20cm Fahren
-    checkEncoders(18);
+    checkEncoders(19);
     DriveTest=0;
 
   }
-  if(DriveTest==7){
+  if(DriveTest==6){
     //50cm Fahren
     checkEncoders(53);
     DriveTest=0;
   }
 
-  if(DriveTest==8){
+  if(DriveTest==7){
     //Entfernung =100cm 
-    checkEncoders(100);
+    checkEncoders(105);
     DriveTest=0;
   }
 
