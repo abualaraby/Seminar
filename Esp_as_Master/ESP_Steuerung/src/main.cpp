@@ -963,7 +963,7 @@ void uploadMap5()
  * @param distance
  */
 
-void buildData(bool isFirst, int distance = 500)
+void buildData(bool isFirst, int distance = realpolarDrive, int angle = realAngleDrive)
 
 {
   int offset = 2;
@@ -971,6 +971,8 @@ void buildData(bool isFirst, int distance = 500)
   {
     Xcoords[0] += distance;
     Xcoords[0] += "|";
+    Ycoords[0] += angle;
+    Ycoords[0] += "|";
     offset = 0;
   }
 
